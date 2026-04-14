@@ -8,6 +8,22 @@ export default function FaceDetector({ onMoodDetected }) {
     const [isCameraReady, setIsCameraReady] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
+    const [isLandscape, setIsLandscape] = useState(false);
+
+    useEffect(() => {
+        const updateOrientation = () => {
+            setIsLandscape(window.innerWidth > window.innerHeight);
+        };
+
+        updateOrientation();
+        window.addEventListener('resize', updateOrientation);
+        window.addEventListener('orientationchange', updateOrientation);
+
+        return () => {
+            window.removeEventListener('resize', updateOrientation);
+            window.removeEventListener('orientationchange', updateOrientation);
+        };
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -144,14 +160,21 @@ export default function FaceDetector({ onMoodDetected }) {
                 </div>
             </div>
 
-            <div className='mx-auto mt-4 min-h-65 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 sm:min-h-0 sm:max-w-96 sm:aspect-square'>
+            <div
+                className={`mx-auto mt-4 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 ${
+                    isLandscape ? 'min-h-55 sm:min-h-0 sm:max-w-96 sm:aspect-square' : 'min-h-65 sm:min-h-0 sm:max-w-96 sm:aspect-4/5'
+                }`}
+            >
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
                     className='h-full w-full object-cover'
-                    style={{ objectPosition: 'center 18%' }}
+                    style={{
+                        objectPosition: isLandscape ? 'center center' : 'center 18%',
+                        transform: 'scaleX(-1)',
+                    }}
                 />
             </div>
 
