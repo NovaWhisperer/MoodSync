@@ -1,0 +1,31 @@
+{
+  "name": "moodsync-backend",
+  "version": "1.0.0",
+  "description": "Backend API for mood-based song uploads and recommendations",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "test": "echo \"No automated tests configured yet\""
+  },
+  "keywords": [
+    "express",
+    "mongodb",
+    "music",
+    "mood"
+  ],
+  "author": "Aryan",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@imagekit/nodejs": "^7.4.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "mongoose": "^9.4.1",
+    "multer": "^2.1.1"
+  }
+}
