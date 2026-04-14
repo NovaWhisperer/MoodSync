@@ -166,8 +166,8 @@ const MoodSongs = ({ mood }) => {
     }
 
     return (
-        <section className='flex min-h-0 flex-col rounded-[1.75rem] border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:p-5'>
-            <div className='flex items-start justify-between gap-4'>
+        <section className='flex min-h-0 flex-col rounded-3xl border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
+            <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
                 <div className='min-w-0'>
                     <p className='text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-amber-200/90'>Recommendations</p>
                     <h2 className='mt-1 text-xl font-black tracking-tight text-white sm:text-2xl'>Songs for your mood</h2>
@@ -177,7 +177,7 @@ const MoodSongs = ({ mood }) => {
                 </div>
 
                 {mood ? (
-                    <span className='rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200'>
+                    <span className='w-fit rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200'>
                         {mood}
                     </span>
                 ) : null}
@@ -201,7 +201,7 @@ const MoodSongs = ({ mood }) => {
                 </div>
             ) : null}
 
-            <div className='mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1'>
+            <div className='mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 sm:pr-2'>
                 {songs.map((song, index) => {
                     const isActive = activeSong === index
                     const hasAudio = Boolean(song.audio)
@@ -209,7 +209,7 @@ const MoodSongs = ({ mood }) => {
                     return (
                         <div
                             key={song._id ?? `${song.title}-${index}`}
-                            className={`group flex items-center justify-between rounded-2xl border px-4 py-3 transition sm:px-4 ${
+                            className={`group flex flex-col gap-4 rounded-2xl border px-4 py-4 transition sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3 ${
                                 isActive
                                     ? 'border-amber-300/40 bg-amber-300/10 shadow-lg shadow-black/25'
                                     : 'border-white/10 bg-white/5 hover:border-amber-300/30 hover:bg-white/10'
@@ -220,29 +220,29 @@ const MoodSongs = ({ mood }) => {
                                     {String(index + 1).padStart(2, '0')}
                                 </div>
 
-                                    <div className='min-w-0'>
+                                <div className='min-w-0'>
                                     <h3 className='truncate text-base font-bold leading-tight text-white sm:text-lg'>{song.title}</h3>
                                     <p className='truncate text-xs text-stone-300 sm:text-sm'>{song.artist}</p>
-                                        {isActive ? (
-                                            <div className='mt-2 w-full max-w-xs'>
-                                                <div className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'>
-                                                    <div
-                                                        className='h-full rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 transition-[width] duration-150'
-                                                        style={{
-                                                            width: `${playback.index === index && playback.duration ? Math.min((playback.currentTime / playback.duration) * 100, 100) : 0}%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div className='mt-1 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.2em] text-stone-400'>
-                                                    <span>{playback.index === index ? formatTime(playback.currentTime) : '0:00'}</span>
-                                                    <span>{playback.index === index ? formatTime(playback.duration) : formatTime(0)}</span>
-                                                </div>
+                                    {isActive ? (
+                                        <div className='mt-2 w-full max-w-xs'>
+                                            <div className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'>
+                                                <div
+                                                    className='h-full rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 transition-[width] duration-150'
+                                                    style={{
+                                                        width: `${playback.index === index && playback.duration ? Math.min((playback.currentTime / playback.duration) * 100, 100) : 0}%`,
+                                                    }}
+                                                />
                                             </div>
-                                        ) : null}
+                                            <div className='mt-1 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.2em] text-stone-400'>
+                                                <span>{playback.index === index ? formatTime(playback.currentTime) : '0:00'}</span>
+                                                <span>{playback.index === index ? formatTime(playback.duration) : formatTime(0)}</span>
+                                            </div>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
 
-                            <div className='flex shrink-0 items-center gap-2'>
+                            <div className='flex shrink-0 items-center gap-2 self-end sm:self-auto'>
                                 <button
                                     type='button'
                                     aria-label='Pause'

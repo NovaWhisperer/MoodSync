@@ -124,8 +124,8 @@ export default function FaceDetector({ onMoodDetected }) {
     };
 
     return (
-        <section className='flex min-h-0 flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:p-5'>
-            <div className='flex items-start justify-between gap-4'>
+        <section className='flex min-h-0 flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
                 <div className='min-w-0'>
                     <p className='text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-amber-200/90'>Camera scan</p>
                     <h2 className='mt-1 text-xl font-black tracking-tight text-white sm:text-2xl'>Detect your mood</h2>
@@ -134,7 +134,7 @@ export default function FaceDetector({ onMoodDetected }) {
                     </p>
                 </div>
 
-                <div className='flex shrink-0 flex-col items-end gap-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-300'>
+                <div className='flex shrink-0 flex-row flex-wrap gap-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-300 sm:flex-col sm:items-end'>
                     <span className={`rounded-full px-3 py-1 ${isModelReady ? 'bg-emerald-400/15 text-emerald-200' : 'bg-white/5 text-stone-400'}`}>
                         Model {isModelReady ? 'ready' : 'loading'}
                     </span>
@@ -144,7 +144,7 @@ export default function FaceDetector({ onMoodDetected }) {
                 </div>
             </div>
 
-            <div className='mx-auto mt-4 aspect-square w-full max-w-96 overflow-hidden rounded-2xl border border-white/10 bg-black/30'>
+            <div className='mx-auto mt-4 aspect-square w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 sm:max-w-96'>
                 <video
                     ref={videoRef}
                     autoPlay
@@ -178,7 +178,7 @@ export default function FaceDetector({ onMoodDetected }) {
                 type='button'
                 onClick={scanMood}
                 disabled={!canScan}
-                className='mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50'
+                className='mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5'
             >
                 {isScanning ? 'Scanning...' : canScan ? 'Scan Mood' : 'Preparing camera...'}
             </button>
