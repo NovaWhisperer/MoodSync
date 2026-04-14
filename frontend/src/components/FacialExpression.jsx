@@ -124,7 +124,7 @@ export default function FaceDetector({ onMoodDetected }) {
     };
 
     return (
-        <section className='flex min-h-0 flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
+        <section className='flex min-h-0 flex-col overflow-hidden rounded-3xl border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
             <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
                 <div className='min-w-0'>
                     <p className='text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-amber-200/90'>Camera scan</p>
@@ -144,7 +144,7 @@ export default function FaceDetector({ onMoodDetected }) {
                 </div>
             </div>
 
-            <div className='mx-auto mt-4 aspect-square w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 sm:max-w-96'>
+            <div className='mx-auto mt-4 min-h-65 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 sm:min-h-0 sm:max-w-96 sm:aspect-square'>
                 <video
                     ref={videoRef}
                     autoPlay
