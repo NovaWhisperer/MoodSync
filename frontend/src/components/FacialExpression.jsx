@@ -140,31 +140,26 @@ export default function FaceDetector({ onMoodDetected }) {
     };
 
     return (
-        <section className='panel panel-detector'>
-            <div className='panel-header'>
-                <div>
-                    <p className='panel-kicker'>Camera module</p>
-                    <h2 className='panel-title'>Read your expression</h2>
-                    <p className='panel-copy'>Frame your face, run one scan, and we map that emotion to tracks instantly.</p>
-                </div>
-
-                <div className='readiness-stack'>
-                    <span className={`readiness-pill ${isModelReady ? 'is-ready' : ''}`}>
+        <section className='camera-panel'>
+            <div className='camera-head'>
+                <h2>Camera</h2>
+                <div className='camera-readiness'>
+                    <span className={`readiness-dot ${isModelReady ? 'is-ready' : ''}`}>
                         Model {isModelReady ? 'ready' : 'loading'}
                     </span>
-                    <span className={`readiness-pill ${isCameraReady ? 'is-ready' : ''}`}>
+                    <span className={`readiness-dot ${isCameraReady ? 'is-ready' : ''}`}>
                         Camera {isCameraReady ? 'ready' : 'waiting'}
                     </span>
                 </div>
             </div>
 
-            <div className={`camera-stage ${isLandscape ? 'landscape' : 'portrait'}`}>
+            <div className={`camera-frame ${isLandscape ? 'landscape' : 'portrait'}`}>
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
-                    className='camera-feed'
+                    className='camera-video'
                     style={{
                         objectPosition: isLandscape ? 'center center' : 'center 18%',
                         transform: 'scaleX(-1)',
@@ -172,21 +167,18 @@ export default function FaceDetector({ onMoodDetected }) {
                 />
             </div>
 
-            <div className='meta-grid'>
-                <article className='meta-card'>
-                    <p className='meta-label'>Current result</p>
-                    {scanResult ? (
-                        <>
-                            <p className='meta-value'>{scanResult.mood}</p>
-                            <p className='meta-note'>Confidence {scanResult.confidence}%</p>
-                        </>
-                    ) : (
-                        <p className='meta-note'>No mood yet. Run a scan to start song recommendations.</p>
-                    )}
-                </article>
+            <div className='scan-strip'>
+                {scanResult ? (
+                    <p>
+                        <strong>{scanResult.mood}</strong>
+                        <span>{scanResult.confidence}% confidence</span>
+                    </p>
+                ) : (
+                    <p>Scan once to load songs</p>
+                )}
             </div>
 
-            <button type='button' onClick={scanMood} disabled={!canScan} className='primary-action'>
+            <button type='button' onClick={scanMood} disabled={!canScan} className='scan-button'>
                 {isScanning ? 'Scanning...' : canScan ? 'Scan mood now' : 'Preparing camera...'}
             </button>
         </section>

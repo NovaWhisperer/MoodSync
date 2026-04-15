@@ -1,30 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Moon, SunMedium } from 'lucide-react';
 import FaceDetector from './components/FacialExpression';
 import MoodSongs from './components/MoodSongs';
 
 const App = () => {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') {
+      return 'light';
+    }
+
+    return window.localStorage.getItem('moodsync-theme') || 'light';
+  });
   const [mood, setMood] = useState('');
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+    window.localStorage.setItem('moodsync-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'));
+  };
+
   return (
-    <main className='app-shell'>
+    <main className='screen'>
       <div className='ambient-layer' aria-hidden='true'>
-        <span className='ambient-orb ambient-orb-a' />
-        <span className='ambient-orb ambient-orb-b' />
-        <span className='ambient-grid' />
+        <span className='ambient-halo ambient-halo-a' />
+        <span className='ambient-halo ambient-halo-b' />
       </div>
 
-      <div className='app-container'>
-        <header className='hero-panel'>
-          <p className='hero-kicker'>Mood synced soundtrack</p>
-          <h1 className='hero-title'>Face scan to instant playlist</h1>
+      <div className='layout'>
+        <header className='topbar'>
+          <div className='topbar-brand'>
+            <div>
+              <p className='topbar-kicker'>MoodSync</p>
+              <h1 className='topbar-title'>Scan and play</h1>
+            </div>
 
-          <div className='status-pill'>
-            <span className='status-dot' />
-            {mood ? `Current mood: ${mood}` : 'Ready for your first scan'}
+            <div className='mood-status'>
+              <span className='status-dot' />
+              {mood ? mood : 'Waiting'}
+            </div>
           </div>
+
+          <button type='button' className='theme-toggle' onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
+            {theme === 'light' ? <Moon size={16} /> : <SunMedium size={16} />}
+            <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
+          </button>
         </header>
 
-        <section className='app-grid'>
+        <section className='workspace'>
           <FaceDetector onMoodDetected={setMood} />
           <MoodSongs mood={mood} />
         </section>
