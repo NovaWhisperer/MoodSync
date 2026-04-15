@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { ListMusic, Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -7,6 +7,17 @@ import { usePlayerStore } from '../store/playerStore'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
 const cn = (...inputs) => twMerge(clsx(inputs))
+
+const shuffleSongs = (songs) => {
+    const nextSongs = [...songs]
+
+    for (let index = nextSongs.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1))
+        ;[nextSongs[index], nextSongs[randomIndex]] = [nextSongs[randomIndex], nextSongs[index]]
+    }
+
+    return nextSongs
+}
 
 const MoodSongs = ({ mood }) => {
     const [isLoading, setIsLoading] = useState(false)
@@ -213,19 +224,20 @@ const MoodSongs = ({ mood }) => {
 
                 const data = await response.json()
                 const fetchedSongs = Array.isArray(data.songs) ? data.songs : []
+                const randomizedSongs = shuffleSongs(fetchedSongs)
 
                 if (!isMounted || controller.signal.aborted) {
                     return
                 }
 
-                setQueue(fetchedSongs)
+                setQueue(randomizedSongs)
 
-                if (!fetchedSongs.length) {
+                if (!randomizedSongs.length) {
                     setIsTracksReady(true)
                     return
                 }
 
-                const trackPromises = fetchedSongs.map((song, index) =>
+                const trackPromises = randomizedSongs.map((song, index) =>
                     preloadAudio(song, index, controller.signal)
                 )
 
@@ -416,14 +428,7 @@ const MoodSongs = ({ mood }) => {
 
             <AnimatePresence>
                 {(queue.length > 0 && (!isCompactScreen || isQueueOpen)) ? (
-                    <motion.section
-                        key='queue'
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className='queue'
-                    >
+                    <section key='queue' className='queue'>
                         {queue.map((song, index) => {
                             const isActive = activeIndex === index
                             const hasAudio = Boolean(song.audio)
@@ -447,7 +452,7 @@ const MoodSongs = ({ mood }) => {
                                 </article>
                             )
                         })}
-                    </motion.section>
+                    </section>
                 ) : null}
             </AnimatePresence>
 

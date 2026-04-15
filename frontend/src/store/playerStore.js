@@ -39,7 +39,7 @@ export const usePlayerStore = create((set, get) => ({
         }
 
         if (state.activeIndex === null) {
-            return 0
+            return state.queue.length > 1 ? 1 : 0
         }
 
         return (state.activeIndex + 1) % state.queue.length
@@ -51,7 +51,7 @@ export const usePlayerStore = create((set, get) => ({
         }
 
         if (state.activeIndex === null) {
-            return 0
+            return state.queue.length - 1
         }
 
         return (state.activeIndex - 1 + state.queue.length) % state.queue.length
