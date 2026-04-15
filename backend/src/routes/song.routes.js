@@ -24,9 +24,9 @@ router.post('/songs', upload.any(), async (req, res) => {
         const artist = String(req.body.artist ?? req.body['artist '] ?? '').trim();
         const mood = String(req.body.mood ?? req.body['mood '] ?? '').trim();
 
-        if (!title || !artist) {
+        if (!title || !artist || !mood) {
             return res.status(400).json({
-                message: 'title and artist are required',
+                message: 'title, artist, and mood are required',
                 error: 'VALIDATION_ERROR'
             });
         }
