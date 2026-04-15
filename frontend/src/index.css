@@ -271,7 +271,7 @@ select {
 	overflow: hidden;
 	border: 1px solid var(--border);
 	background: var(--surface-strong);
-	min-height: 13rem;
+	min-height: 11.5rem;
 }
 
 .camera-frame.landscape {
@@ -336,6 +336,25 @@ select {
 	opacity: 0.5;
 	cursor: not-allowed;
 	transform: none;
+}
+
+.rescan-button {
+	border: 1px solid var(--border);
+	padding: 0.62rem 0.85rem;
+	border-radius: 0.8rem;
+	cursor: pointer;
+	font-size: 0.74rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text);
+	background: var(--surface-strong);
+	transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.rescan-button:hover {
+	transform: translateY(-1px);
+	border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
 .state-inline {
@@ -482,7 +501,7 @@ select {
 .queue {
 	display: grid;
 	gap: 0.5rem;
-	max-height: 18rem;
+	max-height: 16rem;
 	overflow: auto;
 	padding-right: 0.1rem;
 	scrollbar-width: thin;
@@ -594,21 +613,35 @@ select {
 
 @media (min-width: 760px) {
 	.screen {
-		padding: 1.25rem;
+		height: 100dvh;
+		padding: 1rem;
+	}
+
+	.layout {
+		height: 100%;
+		grid-template-rows: auto minmax(0, 1fr);
 	}
 
 	.workspace {
 		grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 		align-items: start;
+		min-height: 0;
 	}
 
 	.camera-panel,
 	.player-panel {
-		padding: 1rem;
+		height: 100%;
+		min-height: 0;
+		overflow: hidden;
+		padding: 0.9rem;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.camera-frame {
-		aspect-ratio: 16 / 10;
+		aspect-ratio: auto;
+		flex: 1;
+		min-height: 0;
 	}
 
 	.queue-toggle {
@@ -616,7 +649,9 @@ select {
 	}
 
 	.queue {
-		max-height: 24rem;
+		max-height: none;
+		flex: 1;
+		min-height: 0;
 	}
 }
 

@@ -12,6 +12,7 @@ const App = () => {
     return window.localStorage.getItem('moodsync-theme') || 'light';
   });
   const [mood, setMood] = useState('');
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -22,6 +23,21 @@ const App = () => {
 
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  const handleMoodDetected = (nextMood) => {
+    setMood(nextMood);
+  };
+
+  const handleSongsStateChange = (isReady) => {
+    if (isReady) {
+      setIsCameraActive(false);
+    }
+  };
+
+  const handleRescan = () => {
+    setMood('');
+    setIsCameraActive(true);
   };
 
   return (
@@ -52,8 +68,12 @@ const App = () => {
         </header>
 
         <section className='workspace'>
-          <FaceDetector onMoodDetected={setMood} />
-          <MoodSongs mood={mood} />
+          <FaceDetector
+            onMoodDetected={handleMoodDetected}
+            isCameraActive={isCameraActive}
+            onRescan={handleRescan}
+          />
+          <MoodSongs mood={mood} onSongsStateChange={handleSongsStateChange} />
         </section>
       </div>
     </main>

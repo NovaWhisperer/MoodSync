@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as faceapi from 'face-api.js';
 
-export default function FaceDetector({ onMoodDetected }) {
+export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan }) {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const [isModelReady, setIsModelReady] = useState(false);
@@ -25,21 +25,23 @@ export default function FaceDetector({ onMoodDetected }) {
         };
     }, []);
 
+    const stopCamera = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+        }
+
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
+
+        setIsCameraReady(false);
+    };
+
     useEffect(() => {
         let isMounted = true;
 
-        const stopCamera = () => {
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach((track) => track.stop());
-                streamRef.current = null;
-            }
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = null;
-            }
-        };
-
-        const start = async () => {
+        const loadModels = async () => {
             try {
                 await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
                 await faceapi.nets.faceExpressionNet.loadFromUri('/models');
@@ -47,7 +49,29 @@ export default function FaceDetector({ onMoodDetected }) {
                 if (isMounted) {
                     setIsModelReady(true);
                 }
+            } catch (err) {
+                console.error('Model initialization failed:', err);
+            }
+        };
 
+        loadModels();
+
+        return () => {
+            isMounted = false;
+            stopCamera();
+        };
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const startCamera = async () => {
+            if (!isModelReady || !isCameraActive) {
+                stopCamera();
+                return;
+            }
+
+            try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user' },
                     audio: false,
@@ -67,19 +91,18 @@ export default function FaceDetector({ onMoodDetected }) {
                     }
                 };
             } catch (err) {
-                console.error('Initialization failed:', err);
+                console.error('Camera start failed:', err);
             }
         };
 
-        start();
+        startCamera();
 
         return () => {
             isMounted = false;
-            stopCamera();
         };
-    }, []);
+    }, [isModelReady, isCameraActive]);
 
-    const canScan = isModelReady && isCameraReady && !isScanning;
+    const canScan = isModelReady && isCameraReady && !isScanning && isCameraActive;
 
     const scanMood = async () => {
         if (!videoRef.current) {
@@ -179,8 +202,14 @@ export default function FaceDetector({ onMoodDetected }) {
             </div>
 
             <button type='button' onClick={scanMood} disabled={!canScan} className='scan-button'>
-                {isScanning ? 'Scanning...' : canScan ? 'Scan mood now' : 'Preparing camera...'}
+                {isScanning ? 'Scanning...' : canScan ? 'Scan mood now' : isCameraActive ? 'Preparing camera...' : 'Camera paused'}
             </button>
+
+            {!isCameraActive ? (
+                <button type='button' onClick={onRescan} className='rescan-button'>
+                    Enable camera to rescan mood
+                </button>
+            ) : null}
         </section>
     );
 }

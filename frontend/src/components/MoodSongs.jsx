@@ -19,7 +19,7 @@ const shuffleSongs = (songs) => {
     return nextSongs
 }
 
-const MoodSongs = ({ mood }) => {
+const MoodSongs = ({ mood, onSongsStateChange }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [isTracksReady, setIsTracksReady] = useState(false)
     const [error, setError] = useState('')
@@ -144,6 +144,14 @@ const MoodSongs = ({ mood }) => {
             window.removeEventListener('resize', updateScreenState)
         }
     }, [])
+
+    useEffect(() => {
+        if (typeof onSongsStateChange !== 'function') {
+            return
+        }
+
+        onSongsStateChange(Boolean(mood) && isTracksReady && !isLoading && !error)
+    }, [mood, isTracksReady, isLoading, error, onSongsStateChange])
 
     useEffect(() => {
         const controller = new AbortController()
