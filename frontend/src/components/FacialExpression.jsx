@@ -140,37 +140,31 @@ export default function FaceDetector({ onMoodDetected }) {
     };
 
     return (
-        <section className='flex min-h-0 flex-col overflow-hidden rounded-3xl border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
-            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                <div className='min-w-0'>
-                    <p className='text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-amber-200/90'>Camera scan</p>
-                    <h2 className='mt-1 text-xl font-black tracking-tight text-white sm:text-2xl'>Detect your mood</h2>
-                    <p className='mt-2 max-w-md text-sm leading-5 text-stone-300'>
-                        Keep your face centered and tap scan to pull one mood from the camera.
-                    </p>
+        <section className='panel panel-detector'>
+            <div className='panel-header'>
+                <div>
+                    <p className='panel-kicker'>Camera module</p>
+                    <h2 className='panel-title'>Read your expression</h2>
+                    <p className='panel-copy'>Frame your face, run one scan, and we map that emotion to tracks instantly.</p>
                 </div>
 
-                <div className='flex shrink-0 flex-row flex-wrap gap-2 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-stone-300 sm:flex-col sm:items-end'>
-                    <span className={`rounded-full px-3 py-1 ${isModelReady ? 'bg-emerald-400/15 text-emerald-200' : 'bg-white/5 text-stone-400'}`}>
+                <div className='readiness-stack'>
+                    <span className={`readiness-pill ${isModelReady ? 'is-ready' : ''}`}>
                         Model {isModelReady ? 'ready' : 'loading'}
                     </span>
-                    <span className={`rounded-full px-3 py-1 ${isCameraReady ? 'bg-emerald-400/15 text-emerald-200' : 'bg-white/5 text-stone-400'}`}>
+                    <span className={`readiness-pill ${isCameraReady ? 'is-ready' : ''}`}>
                         Camera {isCameraReady ? 'ready' : 'waiting'}
                     </span>
                 </div>
             </div>
 
-            <div
-                className={`mx-auto mt-4 w-full max-w-full overflow-hidden rounded-2xl border border-white/10 bg-black/30 ${
-                    isLandscape ? 'min-h-55 sm:min-h-0 sm:max-w-96 sm:aspect-square' : 'min-h-65 sm:min-h-0 sm:max-w-96 sm:aspect-4/5'
-                }`}
-            >
+            <div className={`camera-stage ${isLandscape ? 'landscape' : 'portrait'}`}>
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
-                    className='h-full w-full object-cover'
+                    className='camera-feed'
                     style={{
                         objectPosition: isLandscape ? 'center center' : 'center 18%',
                         transform: 'scaleX(-1)',
@@ -178,32 +172,22 @@ export default function FaceDetector({ onMoodDetected }) {
                 />
             </div>
 
-            <div className='mt-4 grid gap-3 sm:grid-cols-2'>
-                <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
-                    <p className='text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400'>Current result</p>
+            <div className='meta-grid'>
+                <article className='meta-card'>
+                    <p className='meta-label'>Current result</p>
                     {scanResult ? (
                         <>
-                            <p className='mt-2 text-2xl font-black text-white'>{scanResult.mood}</p>
-                            <p className='mt-1 text-sm text-stone-300'>Confidence {scanResult.confidence}%</p>
+                            <p className='meta-value'>{scanResult.mood}</p>
+                            <p className='meta-note'>Confidence {scanResult.confidence}%</p>
                         </>
                     ) : (
-                        <p className='mt-2 text-sm leading-5 text-stone-300'>No mood yet. Scan once to load songs.</p>
+                        <p className='meta-note'>No mood yet. Run a scan to start song recommendations.</p>
                     )}
-                </div>
-
-                <div className='rounded-2xl border border-white/10 bg-white/5 p-4'>
-                    <p className='text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-stone-400'>Next step</p>
-                    <p className='mt-2 text-sm leading-5 text-stone-300'>The detected mood will fetch songs from the backend automatically.</p>
-                </div>
+                </article>
             </div>
 
-            <button
-                type='button'
-                onClick={scanMood}
-                disabled={!canScan}
-                className='mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 px-4 py-3 text-sm font-bold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5'
-            >
-                {isScanning ? 'Scanning...' : canScan ? 'Scan Mood' : 'Preparing camera...'}
+            <button type='button' onClick={scanMood} disabled={!canScan} className='primary-action'>
+                {isScanning ? 'Scanning...' : canScan ? 'Scan mood now' : 'Preparing camera...'}
             </button>
         </section>
     );

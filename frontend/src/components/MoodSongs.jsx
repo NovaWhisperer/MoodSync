@@ -228,74 +228,92 @@ const MoodSongs = ({ mood }) => {
         return `${minutes}:${remainingSeconds}`
     }
 
+    const handleToggleCurrent = async () => {
+        const index = activeSong !== null ? activeSong : 0
+        const song = songs[index]
+
+        if (!song?.audio) {
+            return
+        }
+
+        if (activeSong === index) {
+            handlePause(index)
+            return
+        }
+
+        await handlePlay(song, index)
+    }
+
+    const handleTrackAction = async (song, index) => {
+        if (activeSong === index) {
+            handlePause(index)
+            return
+        }
+
+        await handlePlay(song, index)
+    }
+
+    const displayIndex = activeSong !== null ? activeSong : 0
+    const displaySong = songs[displayIndex]
+    const isDisplaySongActive = activeSong === displayIndex
+    const canControlDisplaySong = Boolean(displaySong?.audio)
+
     return (
-        <section className='flex min-h-0 flex-col rounded-3xl border border-white/10 bg-stone-950/85 p-4 shadow-2xl shadow-black/25 backdrop-blur sm:rounded-[1.75rem] sm:p-5'>
-            <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
-                <div className='min-w-0'>
-                    <p className='text-[0.68rem] font-semibold uppercase tracking-[0.3em] text-amber-200/90'>Recommendations</p>
-                    <h2 className='mt-1 text-xl font-black tracking-tight text-white sm:text-2xl'>Songs for your mood</h2>
-                    <p className='mt-2 max-w-md text-sm leading-5 text-stone-300'>
-                        {mood ? 'The backend is now filtering by the scanned mood.' : 'Scan first to unlock recommendations.'}
+        <section className='panel panel-songs'>
+            <div className='panel-header'>
+                <div>
+                    <p className='panel-kicker'>Recommendation deck</p>
+                    <h2 className='panel-title'>Songs tuned to your mood</h2>
+                    <p className='panel-copy'>
+                        {mood ? 'Mood captured. Playlist is filtered from your backend in real time.' : 'Scan your face first to unlock personalized tracks.'}
                     </p>
                 </div>
 
-                {mood ? (
-                    <span className='w-fit rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200'>
-                        {mood}
-                    </span>
-                ) : null}
+                {mood ? <span className='mood-chip'>{mood}</span> : null}
             </div>
 
             {!mood ? (
-                <div className='mt-4 rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-stone-300'>
-                    No songs yet. Run a scan and the list will appear here.
-                </div>
+                <div className='state-banner'>No songs yet. Run a mood scan and your playlist will appear here.</div>
             ) : isLoading ? (
-                <div className='mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-stone-300'>
-                    Loading songs...
-                </div>
+                <div className='state-banner'>Loading songs...</div>
             ) : error ? (
-                <div className='mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-6 text-sm text-red-200'>
-                    {error}
-                </div>
+                <div className='state-banner is-error'>{error}</div>
             ) : !isTracksReady ? (
-                <div className='mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-stone-300'>
-                    Preparing player and loading track metadata...
-                </div>
+                <div className='state-banner'>Preparing the player and reading track metadata...</div>
             ) : songs.length === 0 ? (
-                <div className='mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-stone-300'>
-                    No songs found for this mood yet.
-                </div>
+                <div className='state-banner'>No songs found for this mood yet.</div>
             ) : null}
 
             {mood && isTracksReady && songs.length > 0 ? (
-                <div className='mt-4 rounded-3xl border border-white/10 bg-linear-to-br from-amber-300/10 via-white/5 to-rose-300/10 p-4 shadow-inner shadow-black/20'>
-                    <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                        <div className='min-w-0'>
-                            <p className='text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-stone-400'>Now playing</p>
-                            <h3 className='mt-1 truncate text-lg font-black text-white sm:text-xl'>
-                                {activeSong !== null ? songs[activeSong]?.title : songs[0]?.title}
-                            </h3>
-                            <p className='mt-1 truncate text-sm text-stone-300'>
-                                {activeSong !== null ? songs[activeSong]?.artist : songs[0]?.artist}
-                            </p>
+                <section className='player-card'>
+                    <div className='player-top'>
+                        <div className='player-glow' aria-hidden='true'>
+                            <span />
                         </div>
 
-                        <div className='grid grid-cols-2 gap-2 text-[0.65rem] uppercase tracking-[0.2em] text-stone-300'>
-                            <div className='rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-center'>
-                                <span className='block text-stone-400'>Tracks</span>
-                                <span className='mt-1 block text-sm font-bold text-white'>{songs.length}</span>
-                            </div>
-                            <div className='rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-center'>
-                                <span className='block text-stone-400'>Status</span>
-                                <span className='mt-1 block text-sm font-bold text-emerald-200'>Ready</span>
-                            </div>
+                        <div className='player-head'>
+                            <p className='player-label'>Now playing</p>
+                            <h3 className='player-title'>{displaySong?.title}</h3>
+                            <p className='player-artist'>{displaySong?.artist}</p>
+                            <p className='player-tip'>{songs.length} tracks ready</p>
                         </div>
                     </div>
 
-                    <div className='mt-4 h-2 overflow-hidden rounded-full bg-white/10'>
+                    <div className='player-controls'>
+                        <button
+                            type='button'
+                            onClick={handleToggleCurrent}
+                            disabled={!canControlDisplaySong}
+                            className='player-main-btn'
+                        >
+                            {isDisplaySongActive ? <FaPause /> : <FaPlay />}
+                            <span>{isDisplaySongActive ? 'Pause' : 'Play'}</span>
+                        </button>
+                    </div>
+
+                    <div className='progress-rail'>
                         <div
-                            className='h-full rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 transition-[width] duration-150'
+                            className='progress-value'
                             style={{
                                 width:
                                     playback.index !== null && playback.duration
@@ -305,80 +323,58 @@ const MoodSongs = ({ mood }) => {
                         />
                     </div>
 
-                    <div className='mt-2 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.2em] text-stone-400'>
+                    <div className='progress-time'>
                         <span>{playback.index !== null ? formatTime(playback.currentTime) : '0:00'}</span>
                         <span>{playback.index !== null ? formatTime(playback.duration) : formatTime(0)}</span>
                     </div>
-                </div>
+                </section>
             ) : null}
 
-            <div className='mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 sm:pr-2'>
+            <div className='songs-list'>
                 {songs.map((song, index) => {
                     const isActive = activeSong === index
                     const hasAudio = Boolean(song.audio)
 
                     return (
-                        <div
-                            key={song._id ?? `${song.title}-${index}`}
-                            className={`group flex flex-col gap-4 rounded-2xl border px-4 py-4 transition sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3 ${
-                                isActive
-                                    ? 'border-amber-300/40 bg-amber-300/10 shadow-lg shadow-black/25'
-                                    : 'border-white/10 bg-white/5 hover:border-amber-300/30 hover:bg-white/10'
-                            }`}
-                        >
-                            <div className='flex min-w-0 items-center gap-4'>
-                                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-bold shadow-sm ${isActive ? 'bg-amber-300 text-slate-950' : 'bg-amber-400/15 text-amber-200'}`}>
-                                    {String(index + 1).padStart(2, '0')}
-                                </div>
+                        <article key={song._id ?? `${song.title}-${index}`} className={`song-row ${isActive ? 'is-active' : ''}`}>
+                            <div className='song-main'>
+                                <div className='song-index'>{String(index + 1).padStart(2, '0')}</div>
 
-                                <div className='min-w-0'>
-                                    <h3 className='truncate text-base font-bold leading-tight text-white sm:text-lg'>{song.title}</h3>
-                                    <p className='truncate text-xs text-stone-300 sm:text-sm'>{song.artist}</p>
+                                <div className='song-meta'>
+                                    <h3>{song.title}</h3>
+                                    <p>{song.artist}</p>
+
                                     {isActive ? (
-                                        <div className='mt-2 w-full max-w-xs'>
-                                            <div className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'>
+                                        <>
+                                            <div className='progress-rail'>
                                                 <div
-                                                    className='h-full rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-orange-300 transition-[width] duration-150'
+                                                    className='progress-value'
                                                     style={{
                                                         width: `${playback.index === index && playback.duration ? Math.min((playback.currentTime / playback.duration) * 100, 100) : 0}%`,
                                                     }}
                                                 />
                                             </div>
-                                            <div className='mt-1 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.2em] text-stone-400'>
+                                            <div className='progress-time'>
                                                 <span>{playback.index === index ? formatTime(playback.currentTime) : '0:00'}</span>
                                                 <span>{playback.index === index ? formatTime(playback.duration) : formatTime(0)}</span>
                                             </div>
-                                        </div>
+                                        </>
                                     ) : null}
                                 </div>
                             </div>
 
-                            <div className='flex shrink-0 items-center gap-2 self-end sm:self-auto'>
+                            <div className='song-actions'>
                                 <button
                                     type='button'
-                                    aria-label='Pause'
-                                    onClick={() => handlePause(index)}
+                                    aria-label={isActive ? 'Pause' : 'Play'}
+                                    onClick={() => handleTrackAction(song, index)}
                                     disabled={!hasAudio}
-                                    className='inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/30 text-stone-200 transition hover:-translate-y-0.5 hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50'
+                                    className={`icon-button is-primary ${isActive ? 'is-active' : ''}`}
                                 >
-                                    <FaPause className='text-sm' />
-                                </button>
-
-                                <button
-                                    type='button'
-                                    aria-label='Play'
-                                    onClick={() => handlePlay(song, index)}
-                                    disabled={!hasAudio}
-                                    className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                                        isActive
-                                            ? 'border-amber-300 bg-amber-300 text-slate-950 shadow-lg shadow-amber-300/20'
-                                            : 'border-white/20 bg-black/30 text-stone-200 hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-200'
-                                    }`}
-                                >
-                                    <FaPlay className='text-sm' />
+                                    {isActive ? <FaPause /> : <FaPlay />}
                                 </button>
                             </div>
-                        </div>
+                        </article>
                     )
                 })}
             </div>
