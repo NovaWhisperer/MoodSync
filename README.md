@@ -1,202 +1,515 @@
 # MoodSync
 
-<p>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License: MIT" /></a>
-  <img src="https://img.shields.io/badge/Node.js-18%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 18+" />
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/Database-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
-  <a href="https://vercel.com/docs"><img src="https://img.shields.io/badge/Frontend-Vercel-black?style=flat-square&logo=vercel" alt="Frontend: Vercel" /></a>
-  <a href="https://render.com/docs"><img src="https://img.shields.io/badge/Backend-Render-5A3FC0?style=flat-square" alt="Backend: Render" /></a>
-</p>
+<div align="center">
 
-MoodSync is a full-stack web app that detects facial expressions in real-time and recommends curated songs based on the detected mood. Features a responsive design with light/dark theme support and persistent user preferences.
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](./LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express)](https://expressjs.com/)
 
-## Highlights
+**AI-powered mood detection meets music discovery**
 
-- **Real-time mood detection** using face-api.js with TinyFaceDetector and FaceExpressionNet
-- **Mood-based song recommendations** with dynamic filtering and queuing
-- **Light/dark theme toggle** with localStorage persistence and smooth transitions
-- **Song upload API** with file hosting via ImageKit
-- **Responsive design** optimized for mobile and desktop with adaptive queue collapse
-- **React + Vite** frontend with Zustand state management
-- **Express + MongoDB** backend with comprehensive error handling
-- **Deployment-ready** setup for Vercel (frontend) and Render (backend)
+*A full-stack web application that uses computer vision to detect facial expressions and recommends personalized songs based on your emotional state.*
 
-## Tech Stack
+[Live Demo](#) • [Documentation](./docs) • [Issues](https://github.com/NovaWhisperer/MoodSync/issues)
 
-- **Frontend:** React 19, Vite 8, Tailwind CSS, face-api.js, Zustand, Framer Motion, Lucide React
-- **Backend:** Node.js 18+, Express.js, Mongoose, Multer, ImageKit SDK
-- **Database:** MongoDB Atlas (or compatible MongoDB)
-- **Media Hosting:** ImageKit
-- **Deployment:** Vercel (frontend), Render (backend)
+</div>
 
-## Folder Structure
+---
 
-```text
-backend/
-  server.js
-  src/
-    app.js
-    db/
-    models/
-    routes/
-    service/
-frontend/
-  src/
-  public/
-```
+## 📋 Table of Contents
 
-## Prerequisites
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [API Documentation](#api-documentation)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-- Node.js 18 or newer
-- npm or yarn
-- MongoDB Atlas account or local MongoDB instance
-- ImageKit account with API credentials
-- Modern browser with webcam support (for facial expression detection)
+---
 
-## Environment Configuration
+## 🎯 Overview
 
-Create these files before running the app:
+**MoodSync** combines real-time facial expression recognition with intelligent music recommendation to create a unique, emotion-aware music discovery experience. Using advanced computer vision algorithms, the application analyzes your facial expressions through your webcam and curates a personalized music queue based on your detected emotional state.
 
-- `backend/.env` (use `backend/.env.example`)
-- `frontend/.env` (use `frontend/.env.example`)
+### Key Use Cases
 
-### Backend variables
+- **Mood-based playlist generation** - Get song recommendations that match your current emotional state
+- **Emotional wellness tracking** - Monitor mood patterns over time (future feature)
+- **Interactive music discovery** - Explore songs categorized by emotional resonance
+- **Personalized listening experience** - Dynamic queue management with theme customization
 
-- `PORT`: API port (example: `3000`)
-- `MONGO_URI`: MongoDB connection string
-- `IMAGEKIT_PUBLIC_KEY`: ImageKit public key
-- `IMAGEKIT_PRIVATE_KEY`: ImageKit private key
-- `IMAGEKIT_URL_ENDPOINT`: ImageKit URL endpoint
-- `CORS_ORIGIN`: Allowed frontend origin(s), comma-separated
+---
 
-### Frontend variables
+## ✨ Features
 
-- `VITE_API_BASE_URL`: Backend base URL (required)
+### 🧠 Intelligent Mood Detection
+- **Real-time facial analysis** using industry-standard face-api.js with TinyFaceDetector
+- **Seven emotional states** recognized: Happy, Sad, Angry, Fearful, Disgusted, Surprised, Neutral
+- **Optimized performance** with continuous camera stream processing and zero frame drops
+- **Privacy-first approach** - All detection happens locally in the browser; no image data sent to servers
 
-Note: There is no hardcoded localhost fallback in fetch calls. Set `VITE_API_BASE_URL` in every environment.
+### 🎵 Smart Music Recommendations
+- **Emotion-based filtering** - Automatically curates song recommendations matching detected mood
+- **Dynamic queue management** - Drag-and-drop reordering with smooth animations
+- **Persistent playback state** - Session-aware music queue management
+- **Multi-format support** - Upload and play various audio formats
 
-## Local Development
+### 🌓 Adaptive UI Experience
+- **Light/Dark theme toggle** - Fully customizable color schemes with localStorage persistence
+- **CSS variable system** - Easy theme modifications without code changes
+- **Responsive design** - Optimized for mobile (760px), tablet, and desktop (1080px+) breakpoints
+- **Smooth transitions** - All theme and UI changes include polished animations
 
-### 1. Install dependencies
+### 📦 Production-Ready Infrastructure
+- **Scalable architecture** - Microservices-ready backend separation
+- **Cloud deployment** - Pre-configured for Vercel (frontend) and Render (backend)
+- **Error handling** - Comprehensive error management and user feedback
+- **State management** - Zustand for efficient, predictable state handling
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **React** | UI framework | 19 |
+| **Vite** | Build tool & dev server | 8 |
+| **Tailwind CSS** | Utility-first styling | Latest |
+| **face-api.js** | Facial recognition | Latest |
+| **Zustand** | State management | Latest |
+| **Framer Motion** | Animation library | Latest |
+| **Lucide React** | Icon library | Latest |
+
+### Backend
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **Node.js** | Runtime | 18+ |
+| **Express** | Web framework | Latest |
+| **Mongoose** | MongoDB ODM | Latest |
+| **Multer** | File upload | Latest |
+| **ImageKit** | Media hosting | SDK |
+| **CORS** | Cross-origin requests | Latest |
+
+### Infrastructure
+| Service | Purpose |
+|---------|---------|
+| **MongoDB Atlas** | Primary database |
+| **ImageKit** | CDN & asset management |
+| **Vercel** | Frontend hosting |
+| **Render** | Backend hosting |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** 18+ ([Download](https://nodejs.org/))
+- **npm** or **yarn** package manager
+- **Git** for version control
+- Modern browser with webcam support (Chrome, Firefox, Safari, Edge)
+
+### External Services Required
+
+1. **MongoDB Atlas** - Free tier available
+   - Create account at [mongodb.com/atlas](https://www.mongodb.com/atlas)
+   - Get connection string
+
+2. **ImageKit** - For media hosting
+   - Sign up at [imagekit.io](https://imagekit.io)
+   - Retrieve API credentials
+
+### Quick Start (5 minutes)
 
 ```bash
-# Install backend dependencies
+# 1. Clone the repository
+git clone https://github.com/NovaWhisperer/MoodSync.git
+cd MoodSync
+
+# 2. Install backend dependencies
 cd backend
 npm install
 
-# Install frontend dependencies
+# 3. Install frontend dependencies
 cd ../frontend
 npm install
+
+# 4. Configure environment variables (see Configuration section)
+# Backend: cp backend/.env.example backend/.env
+# Frontend: cp frontend/.env.example frontend/.env
+
+# 5. Start development servers
+# Terminal 1 - Backend
+cd backend && npm run dev
+
+# Terminal 2 - Frontend
+cd frontend && npm run dev
 ```
 
-### 2. Configure environment
+Your app will be running at:
+- **Frontend:** http://localhost:5173
+- **Backend:** http://localhost:3000
 
-Create `.env` files in both directories using the provided examples:
+---
 
-```bash
-# Backend
-cp backend/.env.example backend/.env
+## 📁 Project Structure
 
-# Frontend
-cp frontend/.env.example frontend/.env
+```
+MoodSync/
+├── backend/
+│   ├── server.js                 # Express server entry point
+│   ├── package.json
+│   ├── .env.example
+│   └── src/
+│       ├── app.js                # Express app configuration
+│       ├── db/
+│       │   └── db.js             # MongoDB connection
+│       ├── models/
+│       │   └── song.model.js     # Song schema
+│       ├── routes/
+│       │   └── song.routes.js    # Song API endpoints
+│       └── service/
+│           └── storage.service.js # ImageKit integration
+├── frontend/
+│   ├── index.html                # HTML entry point
+│   ├── vite.config.js            # Vite configuration
+│   ├── package.json
+│   ├── .env.example
+│   └── src/
+│       ├── main.jsx              # React entry point
+│       ├── App.jsx               # Root component
+│       ├── index.css             # Global styles with CSS variables
+│       ├── components/
+│       │   ├── FacialExpression.jsx
+│       │   └── MoodSongs.jsx
+│       └── public/
+│           └── models/           # Face-api.js models
+├── LICENSE
+└── README.md
 ```
 
-Update the `.env` files with your actual credentials.
+---
 
-### 3. Start the development servers
+## ⚙️ Configuration
 
-In separate terminals:
+### Backend Environment Variables
 
-```bash
-# Terminal 1: Backend (runs on http://localhost:3000)
-cd backend
-npm run dev
+Create `backend/.env`:
 
-# Terminal 2: Frontend (runs on http://localhost:5173 or 5174)
-cd frontend
-npm run dev
+```env
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# Database
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+
+# ImageKit Credentials
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint/
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
 ```
 
-## Features
+### Frontend Environment Variables
 
-### Mood Detection
-- Real-time facial expression analysis using face-api.js
-- Detects emotions: happy, sad, angry, fearful, disgusted, surprised, neutral
-- Continuous camera stream processing with no frame drops
+Create `frontend/.env`:
 
-### Theme System
-- **Light/Dark theme toggle** persisted to localStorage
-- CSS custom properties system for easy theme customization
-- Smooth transitions between theme states
-- Respects user system preferences on first visit
+```env
+# API Configuration
+VITE_API_BASE_URL=http://localhost:3000
+```
 
-### Responsive Design
-- Mobile-first approach with breakpoints at 760px and 1080px
-- Queue panel collapses on mobile to prevent layout bloat
-- Adaptive component sizing based on viewport
-- Touch-friendly controls and spacing
+**⚠️ Important:** The frontend has no hardcoded fallback for `VITE_API_BASE_URL`. Always set this variable in every environment.
 
-### Music Queue Management
-- Drag-and-drop queue reordering with Framer Motion animations
-- Persistent queue state during session
-- Skip, pause, and playback controls
-- Audio file upload with format validation
+---
 
-Default local URLs:
+## 📡 API Documentation
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:3000`
+### Base URL
+```
+http://localhost:3000
+```
 
-## API Reference
+### Endpoints
 
-### `GET /`
+#### Health Check
+```http
+GET /
+```
+Verify backend is running.
 
-Health endpoint.
+**Response:**
+```json
+{
+  "status": "ok"
+}
+```
 
-### `GET /songs`
+---
 
-Returns all songs.
+#### Get All Songs
+```http
+GET /songs
+```
+Retrieve all songs, optionally filtered by mood.
 
-Optional query params:
+**Query Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mood` | string | Filter by mood name (optional) |
 
-- `mood`: filter songs by mood
-
-Example:
-
+**Example:**
 ```http
 GET /songs?mood=happy
 ```
 
-### `POST /songs`
+**Response:**
+```json
+[
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "title": "Happy Song",
+    "artist": "Artist Name",
+    "mood": "happy",
+    "audioUrl": "https://ik.imagekit.io/...",
+    "createdAt": "2024-04-15T10:30:00Z"
+  }
+]
+```
 
-Creates a song entry with uploaded audio.
+---
 
-Request type:
+#### Create Song (Upload)
+```http
+POST /songs
+Content-Type: multipart/form-data
+```
+Upload a new song with metadata.
 
-- `multipart/form-data`
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `audio` | file | ✓ | Audio file (mp3, wav, m4a) |
+| `title` | string | ✓ | Song title |
+| `artist` | string | ✓ | Artist name |
+| `mood` | string | ✗ | Mood category |
 
-Fields:
+**cURL Example:**
+```bash
+curl -X POST http://localhost:3000/songs \
+  -F "audio=@song.mp3" \
+  -F "title=My Song" \
+  -F "artist=My Artist" \
+  -F "mood=happy"
+```
 
-- `audio` (file, required)
-- `title` (string, required)
-- `artist` (string, required)
-- `mood` (string, optional)
+**Response:**
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "title": "My Song",
+  "artist": "My Artist",
+  "mood": "happy",
+  "audioUrl": "https://ik.imagekit.io/...",
+  "createdAt": "2024-04-15T10:35:00Z"
+}
+```
 
-## npm Scripts
+---
 
-### Backend
+## 🔨 Development
 
-- `npm run dev`: start backend in watch mode
-- `npm start`: start backend in production mode
+### Available npm Scripts
 
-### Frontend
+#### Backend
+```bash
+npm run dev     # Start with nodemon (watch mode)
+npm start       # Start production server
+```
 
-- `npm run dev`: start Vite dev server
-- `npm run build`: build production assets
-- `npm run preview`: preview production build
-- `npm run lint`: run ESLint
+#### Frontend
+```bash
+npm run dev     # Start Vite dev server
+npm run build   # Build for production
+npm run preview # Preview production build locally
+npm run lint    # Run ESLint checks
+```
+
+### Development Workflow
+
+1. **Backend changes:** Auto-reload via nodemon
+2. **Frontend changes:** HMR (Hot Module Replacement) via Vite
+3. **Model updates:** Modify `frontend/src/App.jsx` or component files
+4. **Styling:** Edit `frontend/src/index.css` with CSS variables
+
+### Browser DevTools
+
+- Open Developer Console (F12 or Cmd+Option+I)
+- Check Network tab for API calls
+- Inspect React components with React DevTools extension
+- Verify MongoDB data in MongoDB Atlas dashboard
+
+---
+
+## 🌐 Deployment
+
+### Frontend (Vercel)
+
+1. Push code to GitHub
+2. Connect repository to Vercel
+3. Set environment variables:
+   ```
+   VITE_API_BASE_URL=https://your-backend-url.com
+   ```
+4. Deploy automatically on push
+
+### Backend (Render)
+
+1. Create new Web Service on Render
+2. Connect GitHub repository
+3. Configure environment variables in Render dashboard
+4. Set build command: `npm install`
+5. Set start command: `npm start`
+
+### Production Checklist
+
+- [ ] Set `NODE_ENV=production`
+- [ ] Enable HTTPS on both frontend and backend
+- [ ] Update `CORS_ORIGIN` to production frontend URL
+- [ ] Configure MongoDB IP allowlist
+- [ ] Set up monitoring/logging
+- [ ] Enable rate limiting on API
+- [ ] Test all mobile viewports
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend Issues
+
+#### Port Already in Use
+```bash
+# Find process on port 3000
+lsof -i :3000
+
+# Kill process
+kill -9 <PID>
+```
+
+#### MongoDB Connection Failed
+- Verify `MONGO_URI` in `.env`
+- Check MongoDB Atlas IP allowlist includes your current IP
+- Ensure credentials are correct
+
+#### CORS Errors
+- Confirm `CORS_ORIGIN` matches frontend URL
+- Check backend is running on correct port
+
+### Frontend Issues
+
+#### Webcam Permission Denied
+- Allow camera access in browser settings
+- Try a different browser
+- Check if HTTPS is required (localhost OK for dev)
+
+#### Mood Detection Not Working
+- Ensure adequate lighting
+- Check face-api models are loaded (Network tab)
+- Try moving camera closer to face
+
+#### Theme Not Persisting
+- Clear browser cache and localStorage
+- Check DevTools → Application → Local Storage
+- Verify `moodsync-theme` key is present
+
+### Build Issues
+
+#### Vite Build Fails
+```bash
+# Clear cache and rebuild
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+#### Module Not Found Errors
+- Verify import paths match file case (case-sensitive on Linux/Mac)
+- Check file exists in correct location
+- Rebuild TypeScript types if needed
+
+---
+
+## 🤝 Contributing
+
+I welcome contributions! Here's how to help:
+
+### Getting Started
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Commit: `git commit -m 'Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+### Contribution Guidelines
+- Follow existing code style
+- Write clear commit messages
+- Update documentation for new features
+- Test on both desktop and mobile
+- No console errors before submitting PR
+
+### Areas for Contribution
+- 🎨 UI/UX improvements
+- 🐛 Bug fixes
+- ⚡ Performance optimization
+- 📚 Documentation
+- 🧪 Test coverage
+- 🌍 Internationalization
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE](./LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**MoodSync** created with ❤️ by [NovaWhisperer](https://github.com/NovaWhisperer)
+
+---
+
+## 📞 Support
+
+- 📖 Check [FAQ](#faq) section
+- 🐛 Report bugs via [GitHub Issues](https://github.com/NovaWhisperer/MoodSync/issues)
+- 💬 Discuss ideas in [GitHub Discussions](https://github.com/NovaWhisperer/MoodSync/discussions)
+
+---
+
+<div align="center">
+
+**Made with React + Node.js + MongoDB**
+
+⭐ If you found this helpful, please consider giving it a star!
+
+</div>
 
 ## Deployment (Render + Vercel)
 
