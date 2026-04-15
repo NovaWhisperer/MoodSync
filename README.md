@@ -10,22 +10,26 @@
   <a href="https://render.com/docs"><img src="https://img.shields.io/badge/Backend-Render-5A3FC0?style=flat-square" alt="Backend: Render" /></a>
 </p>
 
-MoodSync is a full-stack web app that detects facial expression and recommends songs based on the detected mood.
+MoodSync is a full-stack web app that detects facial expressions in real-time and recommends curated songs based on the detected mood. Features a responsive design with light/dark theme support and persistent user preferences.
 
 ## Highlights
 
-- Mood detection in the browser using `face-api.js`
-- Song recommendations filtered by mood
-- Song upload API with file hosting via ImageKit
-- React + Vite frontend and Express + MongoDB backend
-- Deployment-ready setup for Vercel (frontend) and Render (backend)
+- **Real-time mood detection** using face-api.js with TinyFaceDetector and FaceExpressionNet
+- **Mood-based song recommendations** with dynamic filtering and queuing
+- **Light/dark theme toggle** with localStorage persistence and smooth transitions
+- **Song upload API** with file hosting via ImageKit
+- **Responsive design** optimized for mobile and desktop with adaptive queue collapse
+- **React + Vite** frontend with Zustand state management
+- **Express + MongoDB** backend with comprehensive error handling
+- **Deployment-ready** setup for Vercel (frontend) and Render (backend)
 
 ## Tech Stack
 
-- Frontend: React, Vite, Tailwind CSS, face-api.js
-- Backend: Node.js, Express, Mongoose, Multer
-- Database: MongoDB Atlas (or compatible MongoDB)
-- Media hosting: ImageKit
+- **Frontend:** React 19, Vite 8, Tailwind CSS, face-api.js, Zustand, Framer Motion, Lucide React
+- **Backend:** Node.js 18+, Express.js, Mongoose, Multer, ImageKit SDK
+- **Database:** MongoDB Atlas (or compatible MongoDB)
+- **Media Hosting:** ImageKit
+- **Deployment:** Vercel (frontend), Render (backend)
 
 ## Folder Structure
 
@@ -46,9 +50,10 @@ frontend/
 ## Prerequisites
 
 - Node.js 18 or newer
-- npm
-- MongoDB connection URI
-- ImageKit credentials
+- npm or yarn
+- MongoDB Atlas account or local MongoDB instance
+- ImageKit account with API credentials
+- Modern browser with webcam support (for facial expression detection)
 
 ## Environment Configuration
 
@@ -77,26 +82,67 @@ Note: There is no hardcoded localhost fallback in fetch calls. Set `VITE_API_BAS
 ### 1. Install dependencies
 
 ```bash
+# Install backend dependencies
 cd backend
 npm install
 
+# Install frontend dependencies
 cd ../frontend
 npm install
 ```
 
-### 2. Start backend
+### 2. Configure environment
+
+Create `.env` files in both directories using the provided examples:
 
 ```bash
-cd backend
-npm run dev
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
 ```
 
-### 3. Start frontend
+Update the `.env` files with your actual credentials.
+
+### 3. Start the development servers
+
+In separate terminals:
 
 ```bash
+# Terminal 1: Backend (runs on http://localhost:3000)
+cd backend
+npm run dev
+
+# Terminal 2: Frontend (runs on http://localhost:5173 or 5174)
 cd frontend
 npm run dev
 ```
+
+## Features
+
+### Mood Detection
+- Real-time facial expression analysis using face-api.js
+- Detects emotions: happy, sad, angry, fearful, disgusted, surprised, neutral
+- Continuous camera stream processing with no frame drops
+
+### Theme System
+- **Light/Dark theme toggle** persisted to localStorage
+- CSS custom properties system for easy theme customization
+- Smooth transitions between theme states
+- Respects user system preferences on first visit
+
+### Responsive Design
+- Mobile-first approach with breakpoints at 760px and 1080px
+- Queue panel collapses on mobile to prevent layout bloat
+- Adaptive component sizing based on viewport
+- Touch-friendly controls and spacing
+
+### Music Queue Management
+- Drag-and-drop queue reordering with Framer Motion animations
+- Persistent queue state during session
+- Skip, pause, and playback controls
+- Audio file upload with format validation
 
 Default local URLs:
 

@@ -8,40 +8,40 @@ html {
 :root,
 html[data-theme='light'] {
 	color-scheme: light;
-	--page-bg: #ffeaea;
-	--page-bg-2: #f5cbcb;
-	--surface: rgba(255, 234, 234, 0.96);
-	--surface-strong: rgba(245, 203, 203, 0.88);
-	--surface-soft: rgba(255, 234, 234, 0.72);
-	--text: #393e46;
-	--text-soft: #748dae;
-	--border: rgba(116, 141, 174, 0.22);
-	--accent: #748dae;
-	--accent-strong: #9ecad6;
-	--accent-soft: #f5cbcb;
+	--page-bg: #f6efe6;
+	--page-bg-2: #e8d9c8;
+	--surface: rgba(253, 246, 237, 0.96);
+	--surface-strong: rgba(234, 217, 194, 0.9);
+	--surface-soft: rgba(255, 249, 241, 0.72);
+	--text: #3f2f27;
+	--text-soft: #7b5d4a;
+	--border: rgba(123, 93, 74, 0.2);
+	--accent: #b5814d;
+	--accent-strong: #6c3f2c;
+	--accent-soft: #d6b38c;
 	--button-text: #ffffff;
-	--shadow: rgba(57, 62, 70, 0.1);
-	--glow-a: rgba(158, 202, 214, 0.7);
-	--glow-b: rgba(116, 141, 174, 0.32);
+	--shadow: rgba(63, 47, 39, 0.12);
+	--glow-a: rgba(214, 179, 140, 0.56);
+	--glow-b: rgba(108, 63, 44, 0.28);
 }
 
 html[data-theme='dark'] {
 	color-scheme: dark;
-	--page-bg: #222831;
-	--page-bg-2: #393e46;
-	--surface: rgba(57, 62, 70, 0.92);
-	--surface-strong: rgba(148, 137, 121, 0.25);
-	--surface-soft: rgba(223, 208, 184, 0.1);
-	--text: #dfd0b8;
-	--text-soft: #c5b79f;
-	--border: rgba(223, 208, 184, 0.18);
-	--accent: #948979;
-	--accent-strong: #dfd0b8;
-	--accent-soft: rgba(148, 137, 121, 0.28);
-	--button-text: #222831;
+	--page-bg: #17110f;
+	--page-bg-2: #2a1d19;
+	--surface: rgba(42, 29, 25, 0.92);
+	--surface-strong: rgba(108, 63, 44, 0.28);
+	--surface-soft: rgba(243, 223, 199, 0.08);
+	--text: #f3dfc7;
+	--text-soft: #d1b28f;
+	--border: rgba(209, 178, 143, 0.2);
+	--accent: #c98e58;
+	--accent-strong: #7a432b;
+	--accent-soft: rgba(201, 142, 88, 0.24);
+	--button-text: #1a120f;
 	--shadow: rgba(0, 0, 0, 0.3);
-	--glow-a: rgba(148, 137, 121, 0.28);
-	--glow-b: rgba(223, 208, 184, 0.2);
+	--glow-a: rgba(201, 142, 88, 0.25);
+	--glow-b: rgba(122, 67, 43, 0.28);
 }
 
 body {
@@ -105,7 +105,7 @@ select {
 	right: -3rem;
 	height: 12rem;
 	width: 12rem;
-	background: radial-gradient(circle at 35% 35%, var(--glow-a) 0%, rgba(166, 177, 225, 0) 70%);
+	background: radial-gradient(circle at 35% 35%, var(--glow-a) 0%, transparent 70%);
 }
 
 .ambient-halo-b {
@@ -113,7 +113,7 @@ select {
 	bottom: 20%;
 	height: 14rem;
 	width: 14rem;
-	background: radial-gradient(circle at 35% 35%, var(--glow-b) 0%, rgba(66, 72, 116, 0) 68%);
+	background: radial-gradient(circle at 35% 35%, var(--glow-b) 0%, transparent 68%);
 	animation-delay: 1.2s;
 }
 

@@ -2,6 +2,7 @@
 node_modules/
 npm-debug.log
 yarn-error.log
+pnpm-debug.log*
 
 # Environment variables
 .env
@@ -14,19 +15,39 @@ yarn-error.log
 *.swp
 *.swo
 *~
+*.sublime-workspace
+*.sublime-project
 
 # OS
 .DS_Store
 Thumbs.db
+.DS_Store?
+*.AppleDouble
+*.LSOverride
 
 # Build/dist
 dist/
 build/
+*.tsbuildinfo
 
 # Logs
 logs/
 *.log
+*.log.*
 
 # Temporary files
 tmp/
 temp/
+.cache/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Turbo caching
+.turbo/
+
+# Runtime data
+pids/
+*.pid
+*.seed
