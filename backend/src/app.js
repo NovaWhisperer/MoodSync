@@ -10,8 +10,8 @@ const corsOrigins = String(process.env.CORS_ORIGIN || '')
 
 const corsOptions = corsOrigins.length
 	? {
-		  origin: corsOrigins,
-	  }
+		origin: corsOrigins,
+	}
 	: {};
 
 // Parse JSON bodies for other routes
