@@ -1,43 +1,46 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { ListMusic, Pause, Play, SkipBack, SkipForward, X } from 'lucide-react'
+import { ListMusic, Pause, Play, Repeat, Repeat1, SkipBack, SkipForward, Shuffle, X } from 'lucide-react'
 import clsx from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { usePlayerStore } from '../store/playerStore'
+import useSongs from '../hooks/useSongs'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
 const cn = (...inputs) => twMerge(clsx(inputs))
 
-const shuffleSongs = (songs) => {
-    const nextSongs = [...songs]
-
-    for (let index = nextSongs.length - 1; index > 0; index -= 1) {
-        const randomIndex = Math.floor(Math.random() * (index + 1))
-        ;[nextSongs[index], nextSongs[randomIndex]] = [nextSongs[randomIndex], nextSongs[index]]
-    }
-
-    return nextSongs
-}
+// Module-level component — static identity, no re-creation on every MoodSongs render
+const SkeletonQueue = () => (
+    <div className='queue' aria-hidden='true'>
+        {[...Array(4)].map((_, i) => (
+            <div key={i} className='queue-item skeleton-item'>
+                <div className='skeleton skeleton-circle' />
+                <div className='skeleton-meta'>
+                    <div className='skeleton skeleton-line' />
+                    <div className='skeleton skeleton-line short' />
+                </div>
+            </div>
+        ))}
+    </div>
+)
 
 const MoodSongs = ({ mood, onSongsStateChange }) => {
-    const [isLoading, setIsLoading] = useState(false)
     const [isTracksReady, setIsTracksReady] = useState(false)
-    const [error, setError] = useState('')
     const [isQueueOpen, setIsQueueOpen] = useState(false)
     const [isCompactScreen, setIsCompactScreen] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false
-        }
-
+        if (typeof window === 'undefined') return false
         return window.innerWidth < 760
     })
     const audioRefs = useRef({})
+
+    const { songs, isLoading, error, retry } = useSongs(mood)
 
     const queue = usePlayerStore((state) => state.queue)
     const activeIndex = usePlayerStore((state) => state.activeIndex)
     const isPlaying = usePlayerStore((state) => state.isPlaying)
     const currentTime = usePlayerStore((state) => state.currentTime)
     const duration = usePlayerStore((state) => state.duration)
+    const shuffle = usePlayerStore((state) => state.shuffle)
+    const repeat = usePlayerStore((state) => state.repeat)
     const setQueue = usePlayerStore((state) => state.setQueue)
     const setActiveIndex = usePlayerStore((state) => state.setActiveIndex)
     const setIsPlaying = usePlayerStore((state) => state.setIsPlaying)
@@ -45,17 +48,19 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
     const resetPlayer = usePlayerStore((state) => state.resetPlayer)
     const nextIndex = usePlayerStore((state) => state.nextIndex)
     const previousIndex = usePlayerStore((state) => state.previousIndex)
+    const toggleShuffle = usePlayerStore((state) => state.toggleShuffle)
+    const cycleRepeat = usePlayerStore((state) => state.cycleRepeat)
 
     const activeSong = activeIndex !== null ? queue[activeIndex] : queue[0] ?? null
 
-    const stopAllAudios = () => {
+    const stopAllAudios = useCallback(() => {
         Object.values(audioRefs.current).forEach((audio) => {
             audio.pause()
             audio.currentTime = 0
         })
-    }
+    }, [])
 
-    const ensureAudio = (song, index) => {
+    const ensureAudio = useCallback((song, index) => {
         if (!audioRefs.current[index]) {
             const audio = new Audio(song.audio)
             audio.preload = 'metadata'
@@ -63,26 +68,37 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
             audio.addEventListener('timeupdate', () => {
                 const state = usePlayerStore.getState()
                 if (state.activeIndex === index) {
-                    state.setPlayback(
-                        audio.currentTime,
-                        Number.isFinite(audio.duration) ? audio.duration : 0
-                    )
+                    state.setPlayback(audio.currentTime, Number.isFinite(audio.duration) ? audio.duration : 0)
                 }
             })
 
             audio.addEventListener('loadedmetadata', () => {
                 const state = usePlayerStore.getState()
                 if (state.activeIndex === index) {
-                    state.setPlayback(
-                        audio.currentTime,
-                        Number.isFinite(audio.duration) ? audio.duration : 0
-                    )
+                    state.setPlayback(audio.currentTime, Number.isFinite(audio.duration) ? audio.duration : 0)
                 }
             })
 
             audio.addEventListener('ended', () => {
                 const state = usePlayerStore.getState()
-                if (state.activeIndex === index) {
+                if (state.activeIndex !== index) return
+
+                const next = state.nextIndex()
+                if (next !== null) {
+                    // auto-advance to next track
+                    const nextSong = state.queue[next]
+                    if (nextSong?.audio) {
+                        state.setActiveIndex(next)
+                        state.setIsPlaying(false)
+                        state.setPlayback(0, 0)
+                        // trigger play via a fresh Audio object call
+                        const nextAudio = audioRefs.current[next]
+                        if (nextAudio) {
+                            nextAudio.currentTime = 0
+                            nextAudio.play().then(() => state.setIsPlaying(true)).catch(console.error)
+                        }
+                    }
+                } else {
                     state.setIsPlaying(false)
                     state.setPlayback(0, Number.isFinite(audio.duration) ? audio.duration : 0)
                 }
@@ -92,21 +108,15 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
         }
 
         return audioRefs.current[index]
-    }
+    }, [])
 
     const playByIndex = async (index) => {
         const song = queue[index]
-
-        if (!song?.audio) {
-            return
-        }
+        if (!song?.audio) return
 
         const previous = usePlayerStore.getState().activeIndex
         if (previous !== null && previous !== index) {
-            const previousAudio = audioRefs.current[previous]
-            if (previousAudio) {
-                previousAudio.pause()
-            }
+            audioRefs.current[previous]?.pause()
         }
 
         const audio = ensureAudio(song, index)
@@ -118,180 +128,83 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
             setIsPlaying(true)
         } catch (playError) {
             console.error('Audio play failed:', playError)
-            setError('Unable to play this song right now.')
         }
     }
 
     const pauseByIndex = (index) => {
-        const audio = audioRefs.current[index]
-        if (!audio) {
-            return
-        }
-
-        audio.pause()
+        audioRefs.current[index]?.pause()
         setIsPlaying(false)
     }
 
     useEffect(() => {
-        const updateScreenState = () => {
-            setIsCompactScreen(window.innerWidth < 760)
-        }
-
-        updateScreenState()
-        window.addEventListener('resize', updateScreenState)
-
-        return () => {
-            window.removeEventListener('resize', updateScreenState)
-        }
+        const update = () => setIsCompactScreen(window.innerWidth < 760)
+        update()
+        window.addEventListener('resize', update)
+        return () => window.removeEventListener('resize', update)
     }, [])
 
+    // Sync fetched songs into the player queue
     useEffect(() => {
-        if (typeof onSongsStateChange !== 'function') {
-            return
-        }
-
-        onSongsStateChange(Boolean(mood) && isTracksReady && !isLoading && !error)
-    }, [mood, isTracksReady, isLoading, error, onSongsStateChange])
-
-    useEffect(() => {
-        const controller = new AbortController()
         let isMounted = true
 
-        const preloadAudio = (song, index, signal) => {
-            if (!song.audio) {
-                return Promise.resolve()
-            }
+        // Imperative side-effects only — no setState here
+        stopAllAudios()
+        audioRefs.current = {}
+        resetPlayer()
 
-            return new Promise((resolve) => {
-                const audio = ensureAudio(song, index)
+        if (songs.length) {
+            setQueue(songs)
 
-                const cleanup = () => {
-                    audio.removeEventListener('loadedmetadata', handleReady)
-                    audio.removeEventListener('error', handleReady)
-                    signal?.removeEventListener('abort', handleReady)
-                }
-
-                const handleReady = () => {
-                    cleanup()
-                    resolve()
-                }
-
-                if (Number.isFinite(audio.duration) && audio.duration > 0) {
-                    resolve()
-                    return
-                }
-
-                audio.addEventListener('loadedmetadata', handleReady, { once: true })
-                audio.addEventListener('error', handleReady, { once: true })
-                signal?.addEventListener('abort', handleReady, { once: true })
-
-                audio.load()
-            })
-        }
-
-        const fetchSongs = async () => {
-            if (!mood) {
-                stopAllAudios()
-                audioRefs.current = {}
-                resetPlayer()
-                setIsLoading(false)
-                setIsTracksReady(false)
-                setError('')
-                setIsQueueOpen(false)
-                return
-            }
-
-            if (!API_BASE_URL) {
-                stopAllAudios()
-                audioRefs.current = {}
-                resetPlayer()
-                setIsLoading(false)
-                setIsTracksReady(false)
-                setError('VITE_API_BASE_URL is not configured')
-                setIsQueueOpen(false)
-                return
-            }
-
-            try {
-                stopAllAudios()
-                audioRefs.current = {}
-                resetPlayer()
-                setIsLoading(true)
-                setIsTracksReady(false)
-                setError('')
-                setIsQueueOpen(false)
-
-                const query = mood ? `?mood=${encodeURIComponent(mood)}` : ''
-                const response = await fetch(`${API_BASE_URL}/songs${query}`, {
-                    signal: controller.signal,
-                })
-
-                if (!response.ok) {
-                    throw new Error(`Failed to load songs (${response.status})`)
-                }
-
-                const data = await response.json()
-                const fetchedSongs = Array.isArray(data.songs) ? data.songs : []
-                const randomizedSongs = shuffleSongs(fetchedSongs)
-
-                if (!isMounted || controller.signal.aborted) {
-                    return
-                }
-
-                setQueue(randomizedSongs)
-
-                if (!randomizedSongs.length) {
-                    setIsTracksReady(true)
-                    return
-                }
-
-                const trackPromises = randomizedSongs.map((song, index) =>
-                    preloadAudio(song, index, controller.signal)
+            const preloadAll = async () => {
+                await Promise.allSettled(
+                    songs.map(
+                        (song, index) =>
+                            new Promise((resolve) => {
+                                const audio = ensureAudio(song, index)
+                                if (Number.isFinite(audio.duration) && audio.duration > 0) {
+                                    resolve()
+                                    return
+                                }
+                                audio.addEventListener('loadedmetadata', resolve, { once: true })
+                                audio.addEventListener('error', resolve, { once: true })
+                                audio.load()
+                            })
+                    )
                 )
-
-                await Promise.allSettled(trackPromises)
-
-                if (isMounted && !controller.signal.aborted) {
+                // Only update state if songs haven't changed since this effect ran
+                if (isMounted) {
                     setIsTracksReady(true)
                 }
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    return
-                }
-
-                setError(err.message || 'Failed to load songs')
-                setQueue([])
-                setIsTracksReady(false)
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false)
-                }
             }
-        }
 
-        fetchSongs()
+            preloadAll()
+        }
 
         return () => {
             isMounted = false
-            controller.abort()
-            stopAllAudios()
-            audioRefs.current = {}
+            // Reset UI state in cleanup — avoids setState-in-effect-body lint rule
+            // and ensures state is clean before the next songs batch arrives
+            setIsTracksReady(false)
+            setIsQueueOpen(false)
         }
-    }, [mood, resetPlayer, setQueue])
+    }, [songs, stopAllAudios, ensureAudio, resetPlayer, setQueue])
+
+    // Tell App.jsx whether the player is ready
+    useEffect(() => {
+        if (typeof onSongsStateChange !== 'function') return
+        const ready = Boolean(mood) && isTracksReady && !isLoading && !error
+        const failed = Boolean(mood) && Boolean(error)
+        onSongsStateChange(ready, failed)
+    }, [mood, isTracksReady, isLoading, error, onSongsStateChange])
 
     const handlePlayPause = async () => {
-        if (!queue.length) {
-            return
-        }
-
-        const targetIndex = activeIndex !== null ? activeIndex : 0
-
+        if (!queue.length) return
+        const target = activeIndex !== null ? activeIndex : 0
         if (isPlaying && activeIndex !== null) {
-            pauseByIndex(targetIndex)
+            pauseByIndex(target)
             return
         }
-
-        await playByIndex(targetIndex)
+        await playByIndex(target)
     }
 
     const handleTrackToggle = async (index) => {
@@ -299,62 +212,40 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
             pauseByIndex(index)
             return
         }
-
         await playByIndex(index)
     }
 
     const handleNext = async () => {
         const target = nextIndex()
-        if (target === null) {
-            return
-        }
-
-        await playByIndex(target)
+        if (target !== null) await playByIndex(target)
     }
 
     const handlePrevious = async () => {
         const target = previousIndex()
-        if (target === null) {
-            return
-        }
-
-        await playByIndex(target)
+        if (target !== null) await playByIndex(target)
     }
 
-    const handleSeek = (event) => {
-        if (activeIndex === null) {
-            return
-        }
-
+    const handleSeek = (e) => {
+        if (activeIndex === null) return
         const audio = audioRefs.current[activeIndex]
-        if (!audio) {
-            return
-        }
-
-        const nextTime = Number(event.target.value)
+        if (!audio) return
+        const nextTime = Number(e.target.value)
         audio.currentTime = nextTime
         setPlayback(nextTime, Number.isFinite(audio.duration) ? audio.duration : 0)
     }
 
     const formatTime = (seconds) => {
-        if (!Number.isFinite(seconds) || seconds <= 0) {
-            return '0:00'
-        }
-
-        const wholeSeconds = Math.floor(seconds)
-        const minutes = Math.floor(wholeSeconds / 60)
-        const remainingSeconds = String(wholeSeconds % 60).padStart(2, '0')
-
-        return `${minutes}:${remainingSeconds}`
+        if (!Number.isFinite(seconds) || seconds <= 0) return '0:00'
+        const s = Math.floor(seconds)
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
     }
 
     const progressPercent = useMemo(() => {
-        if (!duration || duration <= 0) {
-            return 0
-        }
-
+        if (!duration || duration <= 0) return 0
         return Math.min((currentTime / duration) * 100, 100)
     }, [currentTime, duration])
+
+    const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
 
     return (
         <section className='player-panel'>
@@ -362,7 +253,7 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                 <h2>Player</h2>
                 <button
                     type='button'
-                    onClick={() => setIsQueueOpen((value) => !value)}
+                    onClick={() => setIsQueueOpen((v) => !v)}
                     className='queue-toggle'
                     aria-label='Toggle queue'
                 >
@@ -370,19 +261,33 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                 </button>
             </div>
 
-            {!mood ? (
-                <div className='state-inline'>Scan your mood to load songs.</div>
-            ) : isLoading ? (
-                <div className='state-inline'>Loading songs...</div>
-            ) : error ? (
-                <div className='state-inline error'>{error}</div>
-            ) : !isTracksReady ? (
-                <div className='state-inline'>Preparing tracks...</div>
-            ) : queue.length === 0 ? (
-                <div className='state-inline'>No songs found for this mood.</div>
-            ) : null}
+            {/* ── State messages ─────────────────────────────────────────── */}
+            {!mood && (
+                <p className='state-inline'>Scan your mood to load songs.</p>
+            )}
 
-            {mood && isTracksReady && queue.length > 0 ? (
+            {mood && error && (
+                <div className='player-error-state'>
+                    <p className='state-inline error'>{error}</p>
+                    <button type='button' className='rescan-button' onClick={retry}>
+                        Retry
+                    </button>
+                </div>
+            )}
+
+            {mood && !error && isLoading && <SkeletonQueue />}
+
+            {mood && !error && !isLoading && isTracksReady && queue.length === 0 && (
+                <div className='empty-state'>
+                    <p className='empty-state-title'>No songs found</p>
+                    <p className='empty-state-body'>
+                        There are no songs tagged as <strong>{mood}</strong> yet.
+                    </p>
+                </div>
+            )}
+
+            {/* ── Now playing ───────────────────────────────────────────── */}
+            {mood && isTracksReady && queue.length > 0 && (
                 <section className='now-playing'>
                     <div className='now-playing-main'>
                         <div className='track-art' aria-hidden='true' />
@@ -393,9 +298,25 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                     </div>
 
                     <div className='transport'>
-                        <button type='button' onClick={handlePrevious} className='transport-btn' aria-label='Previous'>
+                        <button
+                            type='button'
+                            onClick={toggleShuffle}
+                            className={cn('transport-btn', shuffle && 'transport-btn-active')}
+                            aria-label={shuffle ? 'Disable shuffle' : 'Enable shuffle'}
+                            aria-pressed={shuffle}
+                        >
+                            <Shuffle size={14} />
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={handlePrevious}
+                            className='transport-btn'
+                            aria-label='Previous track'
+                        >
                             <SkipBack size={16} />
                         </button>
+
                         <button
                             type='button'
                             onClick={handlePlayPause}
@@ -405,8 +326,24 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                         >
                             {isPlaying ? <Pause size={17} /> : <Play size={17} />}
                         </button>
-                        <button type='button' onClick={handleNext} className='transport-btn' aria-label='Next'>
+
+                        <button
+                            type='button'
+                            onClick={handleNext}
+                            className='transport-btn'
+                            aria-label='Next track'
+                        >
                             <SkipForward size={16} />
+                        </button>
+
+                        <button
+                            type='button'
+                            onClick={cycleRepeat}
+                            className={cn('transport-btn', repeat !== 'off' && 'transport-btn-active')}
+                            aria-label={`Repeat: ${repeat}`}
+                            aria-pressed={repeat !== 'off'}
+                        >
+                            <RepeatIcon size={14} />
                         </button>
                     </div>
 
@@ -418,13 +355,9 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                             value={currentTime}
                             onChange={handleSeek}
                             className='seek'
+                            aria-label='Seek'
                         />
-                        <div
-                            className='seek-progress'
-                            style={{
-                                width: `${progressPercent}%`,
-                            }}
-                        />
+                        <div className='seek-progress' style={{ width: `${progressPercent}%` }} />
                     </div>
 
                     <div className='time-row'>
@@ -432,21 +365,29 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                         <span>{formatTime(duration)}</span>
                     </div>
                 </section>
-            ) : null}
+            )}
 
+            {/* ── Queue ─────────────────────────────────────────────────── */}
             <AnimatePresence>
-                {(queue.length > 0 && (!isCompactScreen || isQueueOpen)) ? (
-                    <section key='queue' className='queue'>
+                {queue.length > 0 && (!isCompactScreen || isQueueOpen) && (
+                    <ul key='queue' className='queue' aria-label='Song queue'>
                         {queue.map((song, index) => {
                             const isActive = activeIndex === index
                             const hasAudio = Boolean(song.audio)
 
                             return (
-                                <article key={song._id ?? `${song.title}-${index}`} className={cn('queue-item', isActive && 'active')}>
+                                <li
+                                    key={song._id ?? `${song.title}-${index}`}
+                                    className={cn('queue-item', isActive && 'active')}
+                                >
                                     <button
                                         type='button'
                                         className='queue-play'
-                                        aria-label={isActive && isPlaying ? 'Pause' : 'Play'}
+                                        aria-label={
+                                            isActive && isPlaying
+                                                ? `Pause ${song.title}`
+                                                : `Play ${song.title}`
+                                        }
                                         onClick={() => handleTrackToggle(index)}
                                         disabled={!hasAudio}
                                     >
@@ -457,22 +398,23 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                                         <p>{song.title}</p>
                                         <span>{song.artist}</span>
                                     </div>
-                                </article>
+                                </li>
                             )
                         })}
-                    </section>
-                ) : null}
+                    </ul>
+                )}
             </AnimatePresence>
 
-            {isCompactScreen && queue.length > 0 && !isQueueOpen ? (
+            {isCompactScreen && queue.length > 0 && !isQueueOpen && (
                 <button
                     type='button'
                     className='queue-more'
                     onClick={() => setIsQueueOpen(true)}
+                    aria-label='Show all songs in queue'
                 >
                     Show songs
                 </button>
-            ) : null}
+            )}
         </section>
     )
 }

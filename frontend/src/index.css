@@ -683,3 +683,179 @@ select {
 		transform: scale(1.04) translate(0.4rem, -0.3rem);
 	}
 }
+
+/* ─── Error boundary fallback ───────────────────────────────────────────────── */
+.error-boundary {
+	display: grid;
+	gap: 0.6rem;
+	padding: 1.2rem;
+	border-radius: 1rem;
+	border: 1px solid color-mix(in srgb, #c76a84 40%, var(--border));
+	background: color-mix(in srgb, #c76a84 8%, var(--surface));
+}
+
+.error-boundary-title {
+	margin: 0;
+	font-size: 0.92rem;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.error-boundary-message {
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--text-soft);
+}
+
+/* ─── Readiness dot error state ─────────────────────────────────────────────── */
+.readiness-dot.is-error {
+	color: color-mix(in srgb, #c76a84 80%, var(--text));
+	border-color: color-mix(in srgb, #c76a84 30%, var(--border));
+	background: color-mix(in srgb, #c76a84 12%, var(--surface));
+}
+
+/* ─── Inline retry button (text-style, inside a sentence) ───────────────────── */
+.inline-retry-btn {
+	border: none;
+	background: none;
+	padding: 0;
+	cursor: pointer;
+	font-size: inherit;
+	font-weight: 700;
+	color: var(--accent);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.inline-retry-btn:hover {
+	color: var(--accent-strong);
+}
+
+/* ─── Scan error text inside scan strip ─────────────────────────────────────── */
+.scan-error {
+	margin: 0;
+	font-size: 0.82rem;
+	color: color-mix(in srgb, #c76a84 80%, var(--text));
+}
+
+/* ─── Expression breakdown list ─────────────────────────────────────────────── */
+.expression-breakdown {
+	list-style: none;
+	margin: 0.5rem 0 0;
+	padding: 0;
+	display: grid;
+	gap: 0.3rem;
+}
+
+.expression-row {
+	display: grid;
+	grid-template-columns: 5.5rem 1fr 2.5rem;
+	align-items: center;
+	gap: 0.45rem;
+	font-size: 0.72rem;
+}
+
+.expression-name {
+	color: var(--text-soft);
+	text-transform: capitalize;
+}
+
+.expression-bar-wrap {
+	height: 0.35rem;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	overflow: hidden;
+}
+
+.expression-bar-fill {
+	height: 100%;
+	border-radius: inherit;
+	background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+	transition: width 0.4s ease;
+}
+
+.expression-pct {
+	color: var(--text-soft);
+	text-align: right;
+}
+
+/* ─── Player error state with retry ─────────────────────────────────────────── */
+.player-error-state {
+	display: grid;
+	gap: 0.55rem;
+}
+
+/* ─── Empty state ────────────────────────────────────────────────────────────── */
+.empty-state {
+	display: grid;
+	gap: 0.35rem;
+	padding: 1.1rem;
+	border-radius: 0.9rem;
+	border: 1px dashed var(--border);
+	background: var(--surface-soft);
+	text-align: center;
+}
+
+.empty-state-title {
+	margin: 0;
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.empty-state-body {
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--text-soft);
+}
+
+/* ─── Skeleton loading ───────────────────────────────────────────────────────── */
+@keyframes shimmer {
+	0% { background-position: -200% 0; }
+	100% { background-position: 200% 0; }
+}
+
+.skeleton {
+	border-radius: 0.4rem;
+	background: linear-gradient(
+		90deg,
+		var(--surface-strong) 25%,
+		color-mix(in srgb, var(--accent-soft) 20%, var(--surface-strong)) 50%,
+		var(--surface-strong) 75%
+	);
+	background-size: 200% 100%;
+	animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.skeleton-item {
+	pointer-events: none;
+}
+
+.skeleton-circle {
+	height: 1.95rem;
+	width: 1.95rem;
+	border-radius: 999px;
+	flex-shrink: 0;
+}
+
+.skeleton-meta {
+	display: grid;
+	gap: 0.3rem;
+	min-width: 0;
+}
+
+.skeleton-line {
+	height: 0.7rem;
+	width: 100%;
+}
+
+.skeleton-line.short {
+	width: 55%;
+}
+
+/* ─── Active transport button (shuffle / repeat on) ─────────────────────────── */
+.transport-btn-active {
+	border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+	background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface-strong));
+	color: var(--accent);
+}

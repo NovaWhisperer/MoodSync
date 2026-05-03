@@ -1,37 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Moon, SunMedium } from 'lucide-react';
 import FaceDetector from './components/FacialExpression';
 import MoodSongs from './components/MoodSongs';
+import ErrorBoundary from './components/ErrorBoundary';
+import useLocalMood from './hooks/useLocalMood';
 
 const App = () => {
   const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') {
-      return 'light';
-    }
-
+    if (typeof window === 'undefined') return 'light';
     return window.localStorage.getItem('moodsync-theme') || 'light';
   });
-  const [mood, setMood] = useState('');
-  const [isCameraActive, setIsCameraActive] = useState(true);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.style.colorScheme = theme;
-    window.localStorage.setItem('moodsync-theme', theme);
-  }, [theme]);
+  const [mood, setMood] = useLocalMood();
+  const [isCameraActive, setIsCameraActive] = useState(!mood); // skip camera if mood restored
 
   const toggleTheme = () => {
-    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'));
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    const root = document.documentElement;
+    root.dataset.theme = next;
+    root.style.colorScheme = next;
+    window.localStorage.setItem('moodsync-theme', next);
   };
 
   const handleMoodDetected = (nextMood) => {
     setMood(nextMood);
   };
 
-  const handleSongsStateChange = (isReady) => {
-    if (isReady) {
+  /**
+   * onSongsStateChange now receives two args:
+   *   ready  — songs loaded successfully, camera can sleep
+   *   failed — fetch failed, camera should stay on so user can rescan
+   */
+  const handleSongsStateChange = (ready, failed) => {
+    if (ready) {
       setIsCameraActive(false);
+    }
+    if (failed) {
+      // Don't lock the camera off on error — let user rescan
+      setIsCameraActive(true);
     }
   };
 
@@ -55,25 +62,35 @@ const App = () => {
               <h1 className='topbar-title'>Scan and play</h1>
             </div>
 
-            <div className='mood-status'>
+            <div className='mood-status' aria-live='polite' aria-atomic='true'>
               <span className='status-dot' />
               {mood ? mood : 'Waiting'}
             </div>
           </div>
 
-          <button type='button' className='theme-toggle' onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
+          <button
+            type='button'
+            className='theme-toggle'
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+          >
             {theme === 'light' ? <Moon size={16} /> : <SunMedium size={16} />}
             <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
           </button>
         </header>
 
         <section className='workspace'>
-          <FaceDetector
-            onMoodDetected={handleMoodDetected}
-            isCameraActive={isCameraActive}
-            onRescan={handleRescan}
-          />
-          <MoodSongs mood={mood} onSongsStateChange={handleSongsStateChange} />
+          <ErrorBoundary>
+            <FaceDetector
+              onMoodDetected={handleMoodDetected}
+              isCameraActive={isCameraActive}
+              onRescan={handleRescan}
+            />
+          </ErrorBoundary>
+
+          <ErrorBoundary>
+            <MoodSongs mood={mood} onSongsStateChange={handleSongsStateChange} />
+          </ErrorBoundary>
         </section>
       </div>
     </main>
