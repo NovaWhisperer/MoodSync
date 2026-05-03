@@ -1,25 +1,41 @@
 const mongoose = require('mongoose');
+const { ALLOWED_MOODS } = require('../constants/moods');
 
-const songSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
+const songSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        artist: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        audio: {
+            type: String,
+            required: true,
+        },
+        mood: {
+            type: String,
+            required: true,
+            trim: true,
+            lowercase: true,
+            enum: {
+                values: ALLOWED_MOODS,
+                message: `Mood must be one of: ${ALLOWED_MOODS.join(', ')}`,
+            },
+        },
     },
-    artist: {
-        type: String,
-        required: true
-    },
-    audio: {
-        type: String,
-        required: true
-    },
-    mood: {
-        type: String,
-        required: true,
-        trim: true
+    {
+        timestamps: true, // adds createdAt and updatedAt automatically
     }
-});
+);
 
-const songModel = mongoose.model('Song', songSchema);
+// Index on mood since it's the primary query filter
+songSchema.index({ mood: 1 });
 
-module.exports = songModel;
+const Song = mongoose.model('Song', songSchema);
+
+module.exports = Song;
