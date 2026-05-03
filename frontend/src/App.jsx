@@ -5,6 +5,7 @@ import MoodSongs from './components/MoodSongs';
 import ErrorBoundary from './components/ErrorBoundary';
 import useLocalMood from './hooks/useLocalMood';
 
+
 const App = () => {
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'light';
