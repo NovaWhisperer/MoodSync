@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 
 const Song = require('../models/song.model');
 const uploadFile = require('../service/storage.service');
@@ -14,8 +15,7 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: MAX_FILE_SIZE_BYTES },
     fileFilter: (_req, file, cb) => {
-        const isAudio = file.mimetype.startsWith('audio/');
-        if (!isAudio) {
+        if (!file.mimetype.startsWith('audio/')) {
             return cb(
                 Object.assign(new Error('Only audio files are allowed'), { status: 415 }),
                 false
@@ -25,31 +25,36 @@ const upload = multer({
     },
 });
 
+// Strict limiter for uploads only — 20 POSTs per 15 min per IP
+const uploadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Upload limit reached. Please try again later.' },
+});
+
 // ─── POST /api/v1/songs ──────────────────────────────────────────────────────
-// Protected: requires x-api-key header
-// Body (multipart/form-data): title, artist, mood + an audio file field
 router.post(
     '/songs',
+    uploadLimiter,
     authMiddleware,
-    upload.any(),
+    upload.single('audio'),
     validateSongBody,
     async (req, res, next) => {
         try {
-            const uploadedFile =
-                req.file || (Array.isArray(req.files) ? req.files[0] : undefined);
-
-            if (!uploadedFile) {
+            if (!req.file) {
                 return res.status(400).json({
                     success: false,
                     message: 'No file uploaded',
                     error: 'FILE_REQUIRED',
-                    hint: 'Send multipart/form-data with an audio file field (preferably named "audio").',
+                    hint: 'Send multipart/form-data with an audio file field named "audio".',
                 });
             }
 
-            const { title, artist, mood } = req.body; // already sanitized by validateSongBody
+            const { title, artist, mood } = req.body;
 
-            const fileData = await uploadFile(uploadedFile);
+            const fileData = await uploadFile(req.file);
 
             const song = await Song.create({
                 title,
@@ -64,17 +69,16 @@ router.post(
                 song,
             });
         } catch (err) {
-            next(err); // passes to centralized error handler
+            next(err);
         }
     }
 );
 
 // ─── GET /api/v1/songs ───────────────────────────────────────────────────────
-// Public — optional ?mood= filter, paginated via ?page=&limit=
 router.get('/songs', async (req, res, next) => {
     try {
         const { mood } = req.query;
-        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const page = Math.max(1, parseInt(req.query.page, 10) || 0);
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
         const skip = (page - 1) * limit;
 

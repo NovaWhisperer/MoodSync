@@ -1,14 +1,12 @@
-/**
- * Simple API key guard for write routes (e.g. POST /api/v1/songs).
- * Set API_KEY in your .env — requests must send it in the x-api-key header.
- */
 const authMiddleware = (req, res, next) => {
-    const apiKey = req.headers['x-api-key'];
-
     if (!process.env.API_KEY) {
-        console.warn('[Auth] API_KEY env variable is not set — upload route is unprotected!');
-        return next();
+        return res.status(500).json({
+            success: false,
+            message: 'Server misconfiguration: API_KEY environment variable is not set',
+        });
     }
+
+    const apiKey = req.headers['x-api-key'];
 
     if (!apiKey || apiKey !== process.env.API_KEY) {
         return res.status(401).json({

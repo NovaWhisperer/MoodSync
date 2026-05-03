@@ -8,10 +8,7 @@ const errorMiddleware = (err, req, res, next) => {
 
     const status = err.status || err.statusCode || 500;
 
-    const isTimeout =
-        typeof err.message === 'string' && err.message.toLowerCase().includes('timed out');
-
-    res.status(isTimeout ? 504 : status).json({
+    res.status(status).json({
         success: false,
         message: err.message || 'Internal server error',
         ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
