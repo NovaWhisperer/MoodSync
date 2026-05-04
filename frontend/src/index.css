@@ -185,6 +185,7 @@ select {
 	border-radius: 999px;
 	background: linear-gradient(180deg, var(--accent), var(--accent-strong));
 	box-shadow: 0 0 0.6rem var(--glow-a);
+	flex-shrink: 0;
 }
 
 .theme-toggle {
@@ -225,6 +226,35 @@ select {
 	align-self: start;
 }
 
+/* ─── Collapsed camera panel ─────────────────────────────────────────────────── */
+.camera-panel-collapsed {
+	padding: 0.85rem 1rem;
+	transition: all 0.3s ease;
+}
+
+.collapsed-mood {
+	display: grid;
+	gap: 0.65rem;
+}
+
+.collapsed-mood-info {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.84rem;
+	color: var(--text-soft);
+}
+
+.collapsed-mood-label strong {
+	color: var(--text);
+	text-transform: capitalize;
+	font-family: "Space Grotesk", "Sora", sans-serif;
+}
+
+.collapsed-breakdown {
+	margin-top: 0 !important;
+}
+
 .camera-head,
 .player-header {
 	display: flex;
@@ -242,28 +272,29 @@ select {
 	color: var(--text-soft);
 }
 
-.camera-readiness {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.45rem;
-	justify-content: flex-end;
-}
-
-.readiness-dot {
-	font-size: 0.6rem;
-	padding: 0.3rem 0.55rem;
-	border-radius: 999px;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
+/* ─── Single human-readable camera status line ───────────────────────────────── */
+.camera-status-line {
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
 	color: var(--text-soft);
-	background: var(--surface-strong);
+	padding: 0.28rem 0.6rem;
+	border-radius: 999px;
 	border: 1px solid var(--border);
+	background: var(--surface-strong);
+	transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.readiness-dot.is-ready {
+.camera-status-line.is-ready {
 	color: var(--text);
 	border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
 	background: color-mix(in srgb, var(--accent-soft) 36%, var(--surface));
+}
+
+.camera-status-line.is-error {
+	color: color-mix(in srgb, #c76a84 80%, var(--text));
+	border-color: color-mix(in srgb, #c76a84 30%, var(--border));
+	background: color-mix(in srgb, #c76a84 12%, var(--surface));
 }
 
 .camera-frame {
@@ -274,7 +305,7 @@ select {
 	min-height: 11.5rem;
 }
 
-/* Aspect ratio driven by device orientation on mobile; overridden to auto on desktop */
+/* Aspect ratio driven by device orientation; overridden to auto on desktop */
 @media (orientation: portrait) {
 	.camera-frame { aspect-ratio: 4 / 5; }
 	.camera-video { object-position: center 18%; }
@@ -442,11 +473,28 @@ select {
 	color: var(--text-soft);
 }
 
+/* ─── Transport controls ─────────────────────────────────────────────────────── */
 .transport {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
+}
+
+/* Wrapper for shuffle/repeat — button + label stacked */
+.transport-btn-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.18rem;
+}
+
+.transport-label {
+	font-size: 0.55rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-soft);
 }
 
 .transport-btn {
@@ -469,12 +517,21 @@ select {
 	transform: none;
 }
 
+/* ─── Seek bar — always shows a visible track + filled progress ──────────────── */
 .seek-wrap {
 	position: relative;
 	height: 0.44rem;
 	border-radius: 999px;
-	background: var(--accent-soft);
 	overflow: hidden;
+}
+
+/* Always-visible grey track underneath */
+.seek-track {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: var(--accent-soft);
+	opacity: 0.5;
 }
 
 .seek {
@@ -502,6 +559,7 @@ select {
 	color: var(--text-soft);
 }
 
+/* ─── Queue ───────────────────────────────────────────────────────────────────── */
 .queue {
 	display: grid;
 	gap: 0.5rem;
@@ -590,6 +648,42 @@ select {
 	letter-spacing: 0.08em;
 }
 
+/* ─── Animated equaliser — shown on active playing track in queue ────────────── */
+.equaliser {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	height: 14px;
+	width: 14px;
+}
+
+.eq-bar {
+	flex: 1;
+	border-radius: 2px 2px 0 0;
+	background: var(--accent);
+	animation: eq-bounce 0.9s ease-in-out infinite;
+}
+
+.eq-bar:nth-child(1) { animation-delay: 0s;    height: 60%; }
+.eq-bar:nth-child(2) { animation-delay: 0.15s; height: 100%; }
+.eq-bar:nth-child(3) { animation-delay: 0.3s;  height: 40%; }
+
+@keyframes eq-bounce {
+	0%, 100% { transform: scaleY(0.4); }
+	50%       { transform: scaleY(1); }
+}
+
+/* ─── Fade-in for player content on load ─────────────────────────────────────── */
+.player-fade-in {
+	animation: fade-in 0.35s ease both;
+}
+
+@keyframes fade-in {
+	from { opacity: 0; transform: translateY(6px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 759px) {
 	.topbar {
 		flex-direction: column;
@@ -608,10 +702,6 @@ select {
 	.player-header {
 		align-items: flex-start;
 		flex-direction: column;
-	}
-
-	.camera-readiness {
-		justify-content: flex-start;
 	}
 }
 
@@ -640,6 +730,11 @@ select {
 		padding: 0.9rem;
 		display: flex;
 		flex-direction: column;
+	}
+
+	/* Collapsed camera panel doesn't stretch to full height */
+	.camera-panel-collapsed {
+		height: auto;
 	}
 
 	.camera-frame {
@@ -709,13 +804,6 @@ select {
 	margin: 0;
 	font-size: 0.8rem;
 	color: var(--text-soft);
-}
-
-/* ─── Readiness dot states ───────────────────────────────────────────────────── */
-.readiness-dot.is-error {
-	color: color-mix(in srgb, #c76a84 80%, var(--text));
-	border-color: color-mix(in srgb, #c76a84 30%, var(--border));
-	background: color-mix(in srgb, #c76a84 12%, var(--surface));
 }
 
 /* ─── Inline retry button ───────────────────────────────────────────────────── */
@@ -815,7 +903,7 @@ select {
 
 /* ─── Skeleton loading ───────────────────────────────────────────────────────── */
 @keyframes shimmer {
-	0% { background-position: -200% 0; }
+	0%   { background-position: -200% 0; }
 	100% { background-position: 200% 0; }
 }
 

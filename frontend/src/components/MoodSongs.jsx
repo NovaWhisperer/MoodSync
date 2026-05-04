@@ -13,6 +13,14 @@ const formatTime = (seconds) => {
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
+const Equaliser = () => (
+    <span className='equaliser' aria-hidden='true'>
+        <span className='eq-bar' />
+        <span className='eq-bar' />
+        <span className='eq-bar' />
+    </span>
+)
+
 const SkeletonQueue = () => (
     <div className='queue' aria-hidden='true'>
         {[...Array(4)].map((_, i) => (
@@ -241,6 +249,7 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
         return Math.min((currentTime / duration) * 100, 100)
     }, [currentTime, duration])
 
+    const repeatLabel = repeat === 'one' ? 'One' : repeat === 'all' ? 'All' : 'Off'
     const RepeatIcon = repeat === 'one' ? Repeat1 : Repeat
 
     return (
@@ -282,7 +291,7 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
             )}
 
             {mood && isTracksReady && queue.length > 0 && (
-                <section className='now-playing'>
+                <section className='now-playing player-fade-in'>
                     <div className='now-playing-main'>
                         <div className='track-art' aria-hidden='true' />
                         <div className='track-meta'>
@@ -292,15 +301,18 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                     </div>
 
                     <div className='transport'>
-                        <button
-                            type='button'
-                            onClick={toggleShuffle}
-                            className={cn('transport-btn', shuffle && 'transport-btn-active')}
-                            aria-label={shuffle ? 'Disable shuffle' : 'Enable shuffle'}
-                            aria-pressed={shuffle}
-                        >
-                            <Shuffle size={14} />
-                        </button>
+                        <div className='transport-btn-wrap'>
+                            <button
+                                type='button'
+                                onClick={toggleShuffle}
+                                className={cn('transport-btn', shuffle && 'transport-btn-active')}
+                                aria-label={shuffle ? 'Disable shuffle' : 'Enable shuffle'}
+                                aria-pressed={shuffle}
+                            >
+                                <Shuffle size={14} />
+                            </button>
+                            <span className='transport-label'>Shuffle</span>
+                        </div>
 
                         <button
                             type='button'
@@ -330,15 +342,18 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                             <SkipForward size={16} />
                         </button>
 
-                        <button
-                            type='button'
-                            onClick={cycleRepeat}
-                            className={cn('transport-btn', repeat !== 'off' && 'transport-btn-active')}
-                            aria-label={`Repeat: ${repeat}`}
-                            aria-pressed={repeat !== 'off'}
-                        >
-                            <RepeatIcon size={14} />
-                        </button>
+                        <div className='transport-btn-wrap'>
+                            <button
+                                type='button'
+                                onClick={cycleRepeat}
+                                className={cn('transport-btn', repeat !== 'off' && 'transport-btn-active')}
+                                aria-label={`Repeat: ${repeat}`}
+                                aria-pressed={repeat !== 'off'}
+                            >
+                                <RepeatIcon size={14} />
+                            </button>
+                            <span className='transport-label'>{repeatLabel}</span>
+                        </div>
                     </div>
 
                     <div className='seek-wrap'>
@@ -351,6 +366,7 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                             className='seek'
                             aria-label='Seek'
                         />
+                        <div className='seek-track' />
                         <div className='seek-progress' style={{ width: `${progressPercent}%` }} />
                     </div>
 
@@ -362,7 +378,7 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
             )}
 
             {queue.length > 0 && (!isCompactScreen || isQueueOpen) && (
-                <ul className='queue' aria-label='Song queue'>
+                <ul className='queue player-fade-in' aria-label='Song queue'>
                     {queue.map((song, index) => {
                         const isActive = activeIndex === index
                         const hasAudio = Boolean(song.audio)
@@ -383,7 +399,10 @@ const MoodSongs = ({ mood, onSongsStateChange }) => {
                                     onClick={() => handleTrackToggle(index)}
                                     disabled={!hasAudio}
                                 >
-                                    {isActive && isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                                    {isActive && isPlaying
+                                        ? <Equaliser />
+                                        : <Play size={14} />
+                                    }
                                 </button>
 
                                 <div className='queue-meta'>

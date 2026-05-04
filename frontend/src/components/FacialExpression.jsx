@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan }) {
+export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan, songsReady }) {
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const faceapiRef = useRef(null);
@@ -85,15 +85,21 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
         !isScanning &&
         isCameraActive;
 
-    const scanButtonLabel = (() => {
-        if (isScanning) return 'Scanning...';
-        if (!isCameraActive) return 'Camera paused';
-        if (modelState === 'loading') return 'Loading AI model...';
-        if (modelState === 'error') return 'Model failed to load';
-        if (cameraState === 'denied') return 'Camera permission denied';
-        if (cameraState === 'error') return 'Camera unavailable';
-        if (cameraState !== 'ready') return 'Preparing camera...';
-        return 'Scan mood now';
+    // Simplified — error states are already shown as messages above the button
+    const scanButtonLabel = isScanning
+        ? 'Scanning...'
+        : (modelState !== 'ready' || cameraState !== 'ready')
+            ? 'Preparing...'
+            : 'Scan mood now';
+
+    // Single human-readable status for the header
+    const cameraStatus = (() => {
+        if (modelState === 'error') return { text: 'AI model failed to load', error: true };
+        if (cameraState === 'denied') return { text: 'Camera permission denied', error: true };
+        if (cameraState === 'error') return { text: 'Camera unavailable', error: true };
+        if (modelState === 'loading') return { text: 'Getting ready…', error: false };
+        if (cameraState !== 'ready') return { text: 'Starting camera…', error: false };
+        return { text: 'Ready to scan', error: false };
     })();
 
     const scanMood = async () => {
@@ -114,7 +120,7 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 return;
             }
 
-            // Sort once — first entry is the winner, no second iteration needed
+            // Sort once — first entry is the winner
             const ranked = Object.entries(detection.expressions)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 3)
@@ -123,7 +129,7 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                     confidence: Number((score * 100).toFixed(1)),
                 }));
 
-            const [mood, confidence] = [ranked[0].name, ranked[0].confidence];
+            const { name: mood, confidence } = ranked[0];
             setScanResult({ mood, confidence, ranked });
             onMoodDetected(mood);
         } catch (err) {
@@ -140,18 +146,49 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
         onRescan();
     };
 
+    // ── Collapsed state — shown after songs load ──────────────────────────────
+    if (songsReady && !isCameraActive) {
+        return (
+            <section className='camera-panel camera-panel-collapsed'>
+                <div className='collapsed-mood'>
+                    <div className='collapsed-mood-info'>
+                        <span className='status-dot' />
+                        <span className='collapsed-mood-label'>
+                            Mood detected: <strong>{scanResult?.mood ?? 'unknown'}</strong>
+                        </span>
+                    </div>
+                    {scanResult && (
+                        <ul className='expression-breakdown collapsed-breakdown' aria-label='Top expressions'>
+                            {scanResult.ranked.map(({ name, confidence }) => (
+                                <li key={name} className='expression-row'>
+                                    <span className='expression-name'>{name}</span>
+                                    <div className='expression-bar-wrap'>
+                                        <div
+                                            className='expression-bar-fill'
+                                            style={{ width: `${confidence}%` }}
+                                        />
+                                    </div>
+                                    <span className='expression-pct'>{confidence}%</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    <button type='button' onClick={handleRescan} className='rescan-button'>
+                        Change mood
+                    </button>
+                </div>
+            </section>
+        );
+    }
+
+    // ── Expanded state — camera active ────────────────────────────────────────
     return (
         <section className='camera-panel'>
             <div className='camera-head'>
                 <h2>Camera</h2>
-                <div className='camera-readiness'>
-                    <span className={`readiness-dot ${modelState === 'ready' ? 'is-ready' : modelState === 'error' ? 'is-error' : ''}`}>
-                        Model {modelState === 'ready' ? 'ready' : modelState === 'error' ? 'failed' : 'loading'}
-                    </span>
-                    <span className={`readiness-dot ${cameraState === 'ready' ? 'is-ready' : cameraState === 'denied' || cameraState === 'error' ? 'is-error' : ''}`}>
-                        Camera {cameraState === 'ready' ? 'ready' : cameraState === 'denied' ? 'denied' : cameraState === 'error' ? 'error' : 'waiting'}
-                    </span>
-                </div>
+                <span className={`camera-status-line ${cameraStatus.error ? 'is-error' : cameraState === 'ready' ? 'is-ready' : ''}`}>
+                    {cameraStatus.text}
+                </span>
             </div>
 
             <div className='camera-frame'>
@@ -224,9 +261,9 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 {scanButtonLabel}
             </button>
 
-            {(!isCameraActive || scanResult) && (
+            {scanResult && (
                 <button type='button' onClick={handleRescan} className='rescan-button'>
-                    {!isCameraActive ? 'Enable camera to rescan mood' : 'Rescan mood'}
+                    Change mood
                 </button>
             )}
         </section>

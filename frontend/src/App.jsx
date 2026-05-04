@@ -12,6 +12,7 @@ const App = () => {
 
   const [mood, setMood] = useLocalMood();
   const [isCameraActive, setIsCameraActive] = useState(!mood);
+  const [songsReady, setSongsReady] = useState(false);
 
   // Apply saved theme to document on mount and on every change
   useEffect(() => {
@@ -27,12 +28,16 @@ const App = () => {
   };
 
   const handleSongsStateChange = useCallback((ready) => {
-    if (ready) setIsCameraActive(false);
+    if (ready) {
+      setIsCameraActive(false);
+      setSongsReady(true);
+    }
   }, []);
 
   const handleRescan = useCallback(() => {
     setMood('');
     setIsCameraActive(true);
+    setSongsReady(false);
   }, [setMood]);
 
   return (
@@ -73,6 +78,7 @@ const App = () => {
               onMoodDetected={setMood}
               isCameraActive={isCameraActive}
               onRescan={handleRescan}
+              songsReady={songsReady}
             />
           </ErrorBoundary>
 
