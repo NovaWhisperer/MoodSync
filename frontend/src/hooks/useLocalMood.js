@@ -1,11 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 const STORAGE_KEY = 'moodsync-last-mood';
 
-/**
- * Syncs detected mood to localStorage so it survives page refreshes.
- * Returns [mood, setMood] — drop-in replacement for useState('').
- */
 const useLocalMood = () => {
     const [mood, setMoodState] = useState(() => {
         try {
@@ -15,7 +11,7 @@ const useLocalMood = () => {
         }
     });
 
-    const setMood = (nextMood) => {
+    const setMood = useCallback((nextMood) => {
         setMoodState(nextMood);
         try {
             if (nextMood) {
@@ -26,7 +22,7 @@ const useLocalMood = () => {
         } catch {
             // localStorage unavailable — state still works in memory
         }
-    };
+    }, []);
 
     return [mood, setMood];
 };

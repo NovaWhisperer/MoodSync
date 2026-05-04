@@ -11,15 +11,6 @@ const shuffleSongs = (songs) => {
     return next;
 };
 
-/**
- * Fetches songs for the given mood from the API.
- * Returns { songs, isLoading, error, retry }
- *
- * - songs:     shuffled array ready to use as the player queue
- * - isLoading: true while fetching or preloading
- * - error:     string message if fetch failed, empty string otherwise
- * - retry:     call this to re-fetch after an error
- */
 const useSongs = (mood) => {
     const [songs, setSongs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +56,7 @@ const useSongs = (mood) => {
                 const data = await response.json();
                 const fetched = Array.isArray(data.songs) ? data.songs : [];
 
-                if (isMounted && !controller.signal.aborted) {
+                if (isMounted) {
                     setSongs(shuffleSongs(fetched));
                 }
             } catch (err) {
@@ -82,9 +73,8 @@ const useSongs = (mood) => {
                     );
                 }
             } finally {
-                if (isMounted && !controller.signal.aborted) {
-                    setIsLoading(false);
-                }
+                // isMounted is false when cleanup ran (unmount/mood change), skip update
+                if (isMounted) setIsLoading(false);
             }
         };
 

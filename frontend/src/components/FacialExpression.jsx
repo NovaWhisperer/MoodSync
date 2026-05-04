@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan }) {
     const videoRef = useRef(null);
@@ -10,30 +10,17 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
     const [isScanning, setIsScanning] = useState(false);
     const [scanResult, setScanResult] = useState(null);
     const [scanError, setScanError] = useState('');
-    const [isLandscape, setIsLandscape] = useState(false);
 
-    useEffect(() => {
-        const update = () => setIsLandscape(window.innerWidth > window.innerHeight);
-        update();
-        window.addEventListener('resize', update);
-        window.addEventListener('orientationchange', update);
-        return () => {
-            window.removeEventListener('resize', update);
-            window.removeEventListener('orientationchange', update);
-        };
-    }, []);
-
-    const stopCamera = () => {
+    const stopCamera = useCallback(() => {
         if (streamRef.current) {
             streamRef.current.getTracks().forEach((t) => t.stop());
             streamRef.current = null;
         }
         if (videoRef.current) videoRef.current.srcObject = null;
         setCameraState('waiting');
-    };
+    }, []);
 
-    // Lazy-load face-api.js only when needed
-    const loadModels = async () => {
+    const loadModels = useCallback(async () => {
         setModelState('loading');
         try {
             const faceapi = await import('face-api.js');
@@ -45,23 +32,12 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
             console.error('Model initialization failed:', err);
             setModelState('error');
         }
-    };
+    }, []);
 
     useEffect(() => {
-        let isMounted = true;
-
-        const init = async () => {
-            await loadModels();
-            if (!isMounted) return;
-        };
-
-        init();
-
-        return () => {
-            isMounted = false;
-            stopCamera();
-        };
-    }, []);
+        loadModels();
+        return () => stopCamera();
+    }, [loadModels, stopCamera]);
 
     useEffect(() => {
         let isMounted = true;
@@ -90,21 +66,18 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 };
             } catch (err) {
                 if (!isMounted) return;
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    setCameraState('denied');
-                } else {
-                    setCameraState('error');
-                }
+                setCameraState(
+                    err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
+                        ? 'denied'
+                        : 'error'
+                );
                 console.error('Camera start failed:', err);
             }
         };
 
         startCamera();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [modelState, isCameraActive]);
+        return () => { isMounted = false; };
+    }, [modelState, isCameraActive, stopCamera]);
 
     const canScan =
         modelState === 'ready' &&
@@ -112,7 +85,7 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
         !isScanning &&
         isCameraActive;
 
-    const getScanButtonLabel = () => {
+    const scanButtonLabel = (() => {
         if (isScanning) return 'Scanning...';
         if (!isCameraActive) return 'Camera paused';
         if (modelState === 'loading') return 'Loading AI model...';
@@ -121,7 +94,7 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
         if (cameraState === 'error') return 'Camera unavailable';
         if (cameraState !== 'ready') return 'Preparing camera...';
         return 'Scan mood now';
-    };
+    })();
 
     const scanMood = async () => {
         if (!videoRef.current || !faceapiRef.current) return;
@@ -141,13 +114,8 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 return;
             }
 
-            const entries = Object.entries(detection.expressions);
-            const [mood, confidence] = entries.reduce(
-                (best, cur) => (cur[1] > best[1] ? cur : best),
-                entries[0]
-            );
-
-            const ranked = [...entries]
+            // Sort once — first entry is the winner, no second iteration needed
+            const ranked = Object.entries(detection.expressions)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 3)
                 .map(([name, score]) => ({
@@ -155,9 +123,9 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                     confidence: Number((score * 100).toFixed(1)),
                 }));
 
-            const result = { mood, confidence: Number((confidence * 100).toFixed(1)), ranked };
-            setScanResult(result);
-            if (typeof onMoodDetected === 'function') onMoodDetected(mood);
+            const [mood, confidence] = [ranked[0].name, ranked[0].confidence];
+            setScanResult({ mood, confidence, ranked });
+            onMoodDetected(mood);
         } catch (err) {
             console.error('Mood scan failed:', err);
             setScanError('Scan failed. Please try again.');
@@ -169,7 +137,7 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
     const handleRescan = () => {
         setScanResult(null);
         setScanError('');
-        if (typeof onRescan === 'function') onRescan();
+        onRescan();
     };
 
     return (
@@ -186,21 +154,16 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 </div>
             </div>
 
-            <div className={`camera-frame ${isLandscape ? 'landscape' : 'portrait'}`}>
+            <div className='camera-frame'>
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
                     className='camera-video'
-                    style={{
-                        objectPosition: isLandscape ? 'center center' : 'center 18%',
-                        transform: 'scaleX(-1)',
-                    }}
                 />
             </div>
 
-            {/* Model load error with retry */}
             {modelState === 'error' && (
                 <p className='state-inline error'>
                     Failed to load the AI model.{' '}
@@ -210,21 +173,18 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 </p>
             )}
 
-            {/* Camera permission denied */}
             {cameraState === 'denied' && (
                 <p className='state-inline error'>
                     Camera access was denied. Please allow camera permission in your browser settings and refresh the page.
                 </p>
             )}
 
-            {/* Camera generic error */}
             {cameraState === 'error' && modelState !== 'error' && (
                 <p className='state-inline error'>
                     Could not access the camera. Make sure no other app is using it.
                 </p>
             )}
 
-            {/* Scan result strip */}
             <div className='scan-strip'>
                 {scanError ? (
                     <p className='scan-error'>{scanError}</p>
@@ -259,16 +219,16 @@ export default function FaceDetector({ onMoodDetected, isCameraActive, onRescan 
                 onClick={scanMood}
                 disabled={!canScan}
                 className='scan-button'
-                aria-label={getScanButtonLabel()}
+                aria-label={scanButtonLabel}
             >
-                {getScanButtonLabel()}
+                {scanButtonLabel}
             </button>
 
-            {!isCameraActive || scanResult ? (
+            {(!isCameraActive || scanResult) && (
                 <button type='button' onClick={handleRescan} className='rescan-button'>
                     {!isCameraActive ? 'Enable camera to rescan mood' : 'Rescan mood'}
                 </button>
-            ) : null}
+            )}
         </section>
     );
 }

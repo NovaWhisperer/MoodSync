@@ -1,52 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Moon, SunMedium } from 'lucide-react';
 import FaceDetector from './components/FacialExpression';
 import MoodSongs from './components/MoodSongs';
 import ErrorBoundary from './components/ErrorBoundary';
 import useLocalMood from './hooks/useLocalMood';
 
-
 const App = () => {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'light';
-    return window.localStorage.getItem('moodsync-theme') || 'light';
-  });
+  const [theme, setTheme] = useState(
+    () => window.localStorage.getItem('moodsync-theme') || 'light'
+  );
 
   const [mood, setMood] = useLocalMood();
-  const [isCameraActive, setIsCameraActive] = useState(!mood); // skip camera if mood restored
+  const [isCameraActive, setIsCameraActive] = useState(!mood);
+
+  // Apply saved theme to document on mount and on every change
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+  }, [theme]);
 
   const toggleTheme = () => {
     const next = theme === 'light' ? 'dark' : 'light';
     setTheme(next);
-    const root = document.documentElement;
-    root.dataset.theme = next;
-    root.style.colorScheme = next;
     window.localStorage.setItem('moodsync-theme', next);
   };
 
-  const handleMoodDetected = (nextMood) => {
-    setMood(nextMood);
-  };
+  const handleSongsStateChange = useCallback((ready) => {
+    if (ready) setIsCameraActive(false);
+  }, []);
 
-  /**
-   * onSongsStateChange now receives two args:
-   *   ready  — songs loaded successfully, camera can sleep
-   *   failed — fetch failed, camera should stay on so user can rescan
-   */
-  const handleSongsStateChange = (ready, failed) => {
-    if (ready) {
-      setIsCameraActive(false);
-    }
-    if (failed) {
-      // Don't lock the camera off on error — let user rescan
-      setIsCameraActive(true);
-    }
-  };
-
-  const handleRescan = () => {
+  const handleRescan = useCallback(() => {
     setMood('');
     setIsCameraActive(true);
-  };
+  }, [setMood]);
 
   return (
     <main className='screen'>
@@ -83,7 +70,7 @@ const App = () => {
         <section className='workspace'>
           <ErrorBoundary>
             <FaceDetector
-              onMoodDetected={handleMoodDetected}
+              onMoodDetected={setMood}
               isCameraActive={isCameraActive}
               onRescan={handleRescan}
             />
